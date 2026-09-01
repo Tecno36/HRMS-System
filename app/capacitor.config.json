@@ -1,0 +1,14 @@
+{
+  "appId": "com.hrms.app",
+  "appName": "HRMS",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
