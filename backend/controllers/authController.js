@@ -78,6 +78,7 @@ exports.loginUser = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
+                avatar: user.avatar,
                 mPinSet: user.mPin ? true : false, 
                 isBiometricEnabled: user.isBiometricEnabled ? true : false 
             }
@@ -247,6 +248,7 @@ exports.loginWithMpin = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
+                avatar: user.avatar,
                 mPinSet: true,
                 isBiometricEnabled: user.isBiometricEnabled ? true : false
             }

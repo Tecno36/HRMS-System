@@ -21,7 +21,8 @@ export default function Profile() {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         const res = await axios.get(`/auth/profile`);
         
-        const userData = res.data || storedUser;
+        const userData = res.data?.data || res.data || storedUser;
+        
         setUser(userData);
         setProfileData({
           name: userData.name || '',
@@ -141,7 +142,6 @@ export default function Profile() {
 
   return (
     <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8 relative">
-      
       {(success || error) && createPortal(
         <div className="fixed top-6 right-6 z-[99999] transition-all duration-300 shadow-2xl animate-[slideLeft_0.3s_ease-out]">
           <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl backdrop-blur-md border ${
@@ -200,11 +200,9 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
           <h2 className="text-xl font-black text-gray-900 mb-6">Personal Information</h2>
           <form onSubmit={handleProfileSubmit} className="space-y-5">
-            
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">Profile Picture Upload</label>
               <input 
@@ -214,7 +212,6 @@ export default function Profile() {
                 className="w-full file-input file-input-bordered bg-gray-50/50 rounded-xl text-sm font-medium text-gray-900 cursor-pointer" 
               />
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">Full Name</label>
               <input 
@@ -225,7 +222,6 @@ export default function Profile() {
                 className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" 
               />
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">Email Address (Read-only)</label>
               <input 
@@ -235,7 +231,6 @@ export default function Profile() {
                 className="w-full px-4 py-3 bg-gray-100/80 border border-gray-200 rounded-xl text-sm font-medium text-gray-500 cursor-not-allowed" 
               />
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">Phone Number</label>
               <input 
@@ -247,7 +242,6 @@ export default function Profile() {
                 className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" 
               />
             </div>
-
             <div className="pt-4 border-t border-gray-100">
               <button 
                 type="submit" 
@@ -265,7 +259,6 @@ export default function Profile() {
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
           <h2 className="text-xl font-black text-gray-900 mb-6">Security & Password</h2>
           <form onSubmit={handlePasswordSubmit} className="space-y-5">
-            
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">Current Password</label>
               <input 
@@ -276,7 +269,6 @@ export default function Profile() {
                 className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" 
               />
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">New Password</label>
               <input 
@@ -287,7 +279,6 @@ export default function Profile() {
                 className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" 
               />
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-700 ml-1">Confirm New Password</label>
               <input 
@@ -298,7 +289,6 @@ export default function Profile() {
                 className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" 
               />
             </div>
-
             <div className="pt-4 border-t border-gray-100">
               <button 
                 type="submit" 

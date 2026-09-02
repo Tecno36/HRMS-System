@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Capacitor } from '@capacitor/core';
 
 const apiBaseUrl = Capacitor.isNativePlatform() 
-  ? 'http://192.168.1.45:5000/api' 
+  ? 'http://192.168.1.46:5000/api' 
   : 'http://localhost:5000/api';  
 
 const instance = axios.create({
