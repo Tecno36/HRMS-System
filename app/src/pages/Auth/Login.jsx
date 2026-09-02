@@ -22,12 +22,11 @@ export default function Login() {
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
 
-    if (userStr && token) {
+    if (userStr) {
       try {
         const parsedUser = JSON.parse(userStr);
-        if (parsedUser && parsedUser.mPinSet) {
+        if (parsedUser && (parsedUser.mPinSet || parsedUser.isBiometricEnabled)) {
           setSavedUser(parsedUser);
           setLoginMode('mpin');
         } else {
