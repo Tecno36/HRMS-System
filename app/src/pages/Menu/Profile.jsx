@@ -59,6 +59,8 @@ export default function Profile() {
           joinDate: formattedJoinDate,
           shift: 'General',
           avatar: userData.avatar || '',
+          mPinSet: userData.mPin ? true : false,
+          isBiometricEnabled: userData.isBiometricEnabled ? true : false
         };
 
         setUser(updatedUser);
