@@ -26,6 +26,7 @@
     "face-api.js": "^0.22.2",
     "flyonui": "^2.4.1",
     "react": "^19.2.8",
+    "react-calendar": "^6.0.1",
     "react-dom": "^19.2.8",
     "react-router-dom": "^5.3.4",
     "react-webcam": "^7.2.0"

@@ -74,8 +74,8 @@ def main():
         else:
             print(json.dumps({"status": "fail", "message": "Face not detected properly"}))
 
-    except Exception:
-        print(json.dumps({"status": "fail", "message": "Server error processing images"}))
+    except Exception as e:
+        print(json.dumps({"status": "fail", "message": f"Real Error: {str(e)}"}))
 
 if __name__ == "__main__":
     main()
