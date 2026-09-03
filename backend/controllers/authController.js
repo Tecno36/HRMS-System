@@ -308,3 +308,65 @@ exports.toggleBiometric = async (req, res) => {
         return res.status(500).json({ status: 'error', message: error.message });
     }
 };
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ status: 'fail', message: 'Please provide current and new password' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 'fail', message: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ status: 'fail', message: 'Incorrect current password' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ status: 'fail', message: 'New password must be at least 6 characters' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        return res.status(200).json({ status: 'success', message: 'Password changed successfully' });
+    } catch (error) {
+        return res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
+exports.changeMpin = async (req, res) => {
+    try {
+        const { currentMpin, newMpin } = req.body;
+        const userId = req.user.id;
+
+        if (!currentMpin || !newMpin || newMpin.length !== 4) {
+            return res.status(400).json({ status: 'fail', message: 'Invalid mPIN format' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user || !user.mPin) {
+            return res.status(400).json({ status: 'fail', message: 'mPIN not set' });
+        }
+
+        const isMatch = await bcrypt.compare(currentMpin, user.mPin);
+        if (!isMatch) {
+            return res.status(400).json({ status: 'fail', message: 'Incorrect current mPIN' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.mPin = await bcrypt.hash(newMpin, salt);
+        await user.save();
+
+        return res.status(200).json({ status: 'success', message: 'mPIN changed successfully' });
+    } catch (error) {
+        return res.status(500).json({ status: 'error', message: error.message });
+    }
+};
