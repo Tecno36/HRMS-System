@@ -6,7 +6,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import axios from '../../services/axios';
 
 export default function Dashboard() {
-  const user = JSON.parse(localStorage.getItem('user')) || { name: 'User', _id: '', id: '' };
+  const user = JSON.parse(localStorage.getItem('user')) || { name: 'User', _id: '', id: '', avatar: '' };
   
   const [isPunchModalOpen, setIsPunchModalOpen] = useState(false);
   const [punchAction, setPunchAction] = useState('in');
@@ -180,7 +180,6 @@ export default function Dashboard() {
       <IonContent scrollY={false} className="ion-no-padding">
         <div className="h-full w-full bg-[#F8F9FE] flex flex-col font-sans relative select-none">
           
-          {/* Toasts */}
           {toast.show && (
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] animate-fade-in-down w-[90%] max-w-sm">
               <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border ${toast.type === 'success' ? 'bg-white border-green-100 text-green-700' : 'bg-white border-red-100 text-red-700'}`}>
@@ -198,30 +197,30 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Sticky Top Section */}
           <div className="shrink-0 z-30 bg-[#F8F9FE] pb-2">
-            {/* Header */}
             <div className="bg-[#5B3CD8] pt-12 pb-28 px-6 rounded-b-[40px]">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/40 overflow-hidden">
-                    <span className="text-white font-bold text-lg">{user.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-xs font-medium">Welcome back 👋</p>
-                    <h1 className="text-white font-bold text-lg leading-tight">{user.name}</h1>
-                  </div>
+                <div className="flex flex-col">
+                  <p className="text-white/80 text-xs font-medium">Welcome 👋</p>
+                  <h1 className="text-white font-bold text-xl leading-tight mt-0.5">{user.name}</h1>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-white font-bold text-sm bg-white/20 px-3 py-1.5 rounded-xl flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <button className="relative p-2 text-white active:scale-95 transition-transform">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                  </button>
+
+                  <Link to="/profile" className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/40 overflow-hidden shadow-sm active:scale-95 transition-transform">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-white font-bold text-lg">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
+                    )}
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* Attendance Overview Card (Sticky) */}
             <div className="px-6 -mt-20 relative z-20">
               <div className="bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                 <div className="flex justify-between items-start mb-6">
@@ -307,7 +306,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Scrollable Bottom Section */}
           <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-6 pt-2">
             
             <div className="grid grid-cols-4 gap-3">
@@ -384,7 +382,6 @@ export default function Dashboard() {
 
           </div>
 
-          {/* Face Verification Modal (Fixed Overlay) */}
           {isPunchModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
               <div className="bg-white w-full max-w-sm rounded-3xl p-6 flex flex-col items-center relative">
