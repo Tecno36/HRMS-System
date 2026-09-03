@@ -9,7 +9,8 @@ const {
     updateProfile,
     setMpin,
     loginWithMpin,
-    toggleBiometric
+    toggleBiometric,
+    setupInitialPassword
 } = require('../controllers/authController');
 
 const verifyToken = require('../middleware/authMiddleware');
@@ -22,6 +23,7 @@ router.post('/reset-password', resetPassword);
 router.post('/set-mpin', verifyToken, setMpin);
 router.post('/login-mpin', loginWithMpin);
 router.post('/toggle-biometric', verifyToken, toggleBiometric);
+router.post('/setup-password', verifyToken, setupInitialPassword);
 
 
 router.get('/profile', verifyToken, getProfile);

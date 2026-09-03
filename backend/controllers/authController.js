@@ -38,7 +38,7 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
     try {
-        const { email, password, loginSource } = req.body;
+        const { email, password, loginSource, deviceId } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Please provide email and password' });
@@ -62,6 +62,20 @@ exports.loginUser = async (req, res) => {
             return res.status(403).json({ message: 'Account is deactivated' });
         }
 
+        if (deviceId) {
+            const existingDeviceUser = await User.findOne({ registeredDeviceId: deviceId, _id: { $ne: user._id } });
+            if (existingDeviceUser) {
+                return res.status(403).json({ message: 'This device is already registered to another employee.' });
+            }
+
+            if (!user.registeredDeviceId) {
+                user.registeredDeviceId = deviceId;
+                await user.save();
+            } else if (user.registeredDeviceId !== deviceId) {
+                return res.status(403).json({ message: 'You can only login from your registered device. Please contact HR.' });
+            }
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role, companyName: user.companyName },
             process.env.JWT_SECRET,
@@ -78,12 +92,37 @@ exports.loginUser = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
-                mPinSet: user.mPin ? true : false, 
-                isBiometricEnabled: user.isBiometricEnabled ? true : false 
+                avatar: user.avatar,
+                mPinSet: user.mPin ? true : false,
+                isBiometricEnabled: user.isBiometricEnabled ? true : false,
+                isFirstLogin: user.isFirstLogin !== undefined ? user.isFirstLogin : false
             }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.setupInitialPassword = async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ status: 'fail', message: 'Password must be at least 6 characters' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await User.findByIdAndUpdate(userId, { 
+            password: hashedPassword,
+            isFirstLogin: false 
+        });
+
+        return res.status(200).json({ status: 'success', message: 'Password updated successfully' });
+    } catch (error) {
+        return res.status(500).json({ status: 'error', message: error.message });
     }
 };
 
@@ -247,6 +286,7 @@ exports.loginWithMpin = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
+                avatar: user.avatar,
                 mPinSet: true,
                 isBiometricEnabled: user.isBiometricEnabled ? true : false
             }
