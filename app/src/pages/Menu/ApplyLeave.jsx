@@ -138,7 +138,7 @@ export default function ApplyLeave() {
 
       if (response.data.status === 'success') {
         showToast('Leave request submitted successfully', 'success');
-        setTimeout(() => history.push('/leaves'), 1500);
+        setTimeout(() => history.push('/my-leaves'), 1500);
       }
     } catch (error) {
       showToast(error.response?.data?.message || 'Failed to submit request', 'error');

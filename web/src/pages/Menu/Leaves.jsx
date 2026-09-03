@@ -8,7 +8,6 @@ export default function Leaves() {
   const [error, setError] = useState('');
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
-  // 1. New States for Search, Filter & Pagination
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,15 +20,16 @@ export default function Leaves() {
       const res = await axios.get('/leaves/company-leaves', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = res.data;
-      setLeaves(data);
+      
+      const leaveData = res.data.data || [];
+      setLeaves(leaveData);
 
-      const pending = data.filter(item => item.status === 'Pending').length;
-      const approved = data.filter(item => item.status === 'Approved').length;
-      const rejected = data.filter(item => item.status === 'Rejected').length;
+      const pending = leaveData.filter(item => item.status === 'Pending').length;
+      const approved = leaveData.filter(item => item.status === 'Approved').length;
+      const rejected = leaveData.filter(item => item.status === 'Rejected').length;
 
       setStats({
-        total: data.length,
+        total: leaveData.length,
         pending,
         approved,
         rejected
@@ -46,7 +46,6 @@ export default function Leaves() {
     fetchLeaves();
   }, []);
 
-  // 2. Reset page to 1 when searching or filtering
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterStatus]);
@@ -63,14 +62,13 @@ export default function Leaves() {
     }
   };
 
-  // 3. Logic for Search & Filter
   const filteredLeaves = leaves.filter(item => {
-    const matchesSearch = item.employee?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const empName = item.employee?.name || '';
+    const matchesSearch = empName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'All' || item.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  // 4. Logic for Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredLeaves.slice(indexOfFirstItem, indexOfLastItem);
@@ -83,7 +81,6 @@ export default function Leaves() {
   return (
     <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8 relative">
       
-      {/* Stats Cards - No changes here */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { title: 'Total Requests', value: stats.total, color: 'text-indigo-600', bg: 'bg-indigo-50' },
@@ -103,14 +100,12 @@ export default function Leaves() {
         ))}
       </div>
 
-      {/* Header with Search and Filter */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">Leave Management</h1>
           <p className="text-sm text-gray-500 mt-1 font-medium">Review and manage employee leave applications.</p>
         </div>
         
-        {/* Search & Filter Controls */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -144,7 +139,6 @@ export default function Leaves() {
         </div>
       )}
 
-      {/* Table Section */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -169,7 +163,7 @@ export default function Leaves() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-lg border border-indigo-100 shadow-sm">
-                          {item.employee?.name ? item.employee.name.charAt(0) : 'U'}
+                          {item.employee?.name ? item.employee.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div>
                           <p className="font-bold text-gray-900">{item.employee?.name || 'Unknown'}</p>
@@ -202,13 +196,13 @@ export default function Leaves() {
                         <div className="flex items-center justify-center gap-2">
                           <button 
                             onClick={() => handleStatusUpdate(item._id, 'Approved')}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+                            className="btn btn-gradient btn-success btn-sm rounded-xl text-xs font-bold shadow-sm text-white"
                           >
                             Approve
                           </button>
                           <button 
                             onClick={() => handleStatusUpdate(item._id, 'Rejected')}
-                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+                            className="btn btn-gradient btn-error btn-sm rounded-xl text-xs font-bold shadow-sm text-white"
                           >
                             Reject
                           </button>
@@ -235,7 +229,6 @@ export default function Leaves() {
           </table>
         </div>
 
-        {/* Pagination Controls */}
         {!loading && filteredLeaves.length > itemsPerPage && (
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-3xl">
             <span className="text-sm font-bold text-gray-500">

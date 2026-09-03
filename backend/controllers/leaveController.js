@@ -32,8 +32,10 @@ exports.applyLeave = async (req, res) => {
 
         const user = await User.findById(employeeId).populate('assignedHR');
 
-        if (user && user.assignedHR && user.assignedHR.email) {
-            const hrEmail = user.assignedHR.email;
+        const hrEmail = (user && user.assignedHR && user.assignedHR.email) ? user.assignedHR.email : process.env.EMAIL_USER;
+
+
+        if (hrEmail) {
             const subject = `New Leave Request - ${user.name}`;
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px;">
@@ -67,7 +69,7 @@ exports.applyLeave = async (req, res) => {
             `;
 
             try {
-                await sendEmail({ email: hrEmail, subject, html });
+                await sendEmail({ email: hrEmail, to: hrEmail, subject, html });
             } catch (emailError) {
                 console.error('Email sending failed:', emailError);
             }
@@ -114,7 +116,7 @@ exports.updateLeaveStatus = async (req, res) => {
         const updatedLeave = await Leave.findByIdAndUpdate(
             id,
             { status, approvedBy: hrId },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!updatedLeave) {

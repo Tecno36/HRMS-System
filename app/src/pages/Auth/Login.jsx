@@ -144,28 +144,42 @@ export default function Login() {
 
   const handleBiometricLogin = async () => {
     try {
-      if (!isBiometricAvailable) {
+      const result = await NativeBiometric.isAvailable();
+      if (!result.isAvailable) {
         setError('Biometric hardware not available.');
         return;
       }
       
-      const verified = await NativeBiometric.verifyIdentity({
+      await NativeBiometric.verifyIdentity({
         reason: 'Authenticate to login',
-        title: 'Login to HRMS'
+        title: 'Login to HRMS',
+        subtitle: 'Use your fingerprint or face ID',
+        useFallback: true, 
       });
 
-      if (verified) {
-        setLoading(true);
+      setLoading(true);
+      setError('');
+      
+      try {
         const res = await axios.post('/auth/login-mpin', { 
           email: savedUser.email, 
           isBiometricLogin: true 
         });
+        
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         history.push('/dashboard');
+      } catch (apiErr) {
+        setError(apiErr.response?.data?.message || 'Biometric login failed on server.');
+      } finally {
+        setLoading(false);
       }
+
     } catch (err) {
-      setError('Biometric verification failed or cancelled.');
+      console.error('Biometric error:', err);
+      if (err.message !== 'Canceled' && err.code !== 10) {
+        setError('Biometric verification failed.');
+      }
     } finally {
       setLoading(false);
     }

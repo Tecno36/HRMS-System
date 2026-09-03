@@ -110,7 +110,6 @@ export default function Settings() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     history.push('/login');
   };
 
