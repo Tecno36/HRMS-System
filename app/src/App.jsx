@@ -11,6 +11,8 @@ import Attendance from './pages/Menu/Attendance';
 import ApplyLeave from './pages/Menu/ApplyLeave';
 import MainLayout from './layouts/MainLayout';
 
+import Settings from './pages/Navbar/Settings';
+import MyLeaves from './pages/Navbar/MyLeaves';
 export default function App() {
   return (
     <BrowserRouter>
@@ -30,6 +32,8 @@ export default function App() {
               <Route exact path="/profile" component={Profile} />
               <Route exact path="/attendance" component={Attendance} />
               <Route exact path="/apply-leave" component={ApplyLeave} />
+              <Route exact path="/settings" component={Settings} />
+              <Route exact path="/my-leaves" component={MyLeaves} />
             </Switch>
           </MainLayout>
         </Route>
