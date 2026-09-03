@@ -10,6 +10,8 @@ export default function Attendance() {
   const [loading, setLoading] = useState(false);
   
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchHistory();
@@ -106,6 +108,15 @@ export default function Attendance() {
     setSelectedDate(newDate);
   };
 
+  const filteredHistory = attendanceHistory.filter((record) => {
+    const recDate = new Date(record.date || record.createdAt);
+    const dateString = recDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toLowerCase();
+    const statusText = (record.status || (record.clockIn ? 'Present' : 'Absent')).toLowerCase();
+    const query = searchQuery.toLowerCase();
+
+    return dateString.includes(query) || statusText.includes(query);
+  });
+
   return (
     <MainLayout>
       <IonPage>
@@ -159,7 +170,7 @@ export default function Attendance() {
               </div>
 
               <div className="px-5 mt-5">
-                <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgb(0,0,0,0.03)] border border-gray-50 mb-6 transition-all duration-300">
+                <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgb(0,0,0,0.03)] border border-gray-50 mb-4 transition-all duration-300">
                   <div className="flex justify-between items-center mb-5 border-b border-gray-50 pb-4">
                     <h3 className="text-sm font-bold text-gray-900">
                       {selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
@@ -187,9 +198,34 @@ export default function Attendance() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-4 px-1">
+                {/* Flyon UI Search Box Starts Here */}
+                <div className="mb-4 relative w-full">
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by date (e.g., 10 Oct) or status..."
+                    className="w-full bg-white border border-gray-200 rounded-xl py-3.5 ps-10 pe-4 text-[12px] text-gray-800 placeholder-gray-400 shadow-[0_2px_10px_rgb(0,0,0,0.02)] focus:border-[#5B3CD8] focus:ring-1 focus:ring-[#5B3CD8] outline-none box-border transition-all"
+                  />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  )}
+                </div>
+                {/* Flyon UI Search Box Ends Here */}
+
+                <div className="flex items-center justify-between mb-2 px-1">
                   <h2 className="text-sm font-bold text-gray-900">Attendance History</h2>
-                  <span className="text-[11px] font-bold text-[#5B3CD8]">{attendanceHistory.length} Records</span>
+                  <span className="text-[11px] font-bold text-[#5B3CD8]">{filteredHistory.length} Records</span>
                 </div>
               </div>
             </div>
@@ -197,8 +233,8 @@ export default function Attendance() {
             <div className="flex-1 overflow-y-auto px-5 pb-24 space-y-3">
               {loading ? (
                 <p className="text-center text-xs text-gray-400 py-4">Loading history...</p>
-              ) : attendanceHistory.length > 0 ? (
-                attendanceHistory.map((record, index) => {
+              ) : filteredHistory.length > 0 ? (
+                filteredHistory.map((record, index) => {
                   const recDate = new Date(record.date || record.createdAt);
                   const statusText = record.status || (record.clockIn ? 'Present' : 'Absent');
                   return (

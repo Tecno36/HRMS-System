@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
 import { useHistory, Link } from 'react-router-dom';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 import axios from '../../services/axios';
 import MainLayout from '../../layouts/MainLayout';
 
@@ -11,6 +13,11 @@ export default function ApplyLeave() {
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const [showFromCalendar, setShowFromCalendar] = useState(false);
+  const [showToCalendar, setShowToCalendar] = useState(false);
+  const fromCalendarRef = useRef(null);
+  const toCalendarRef = useRef(null);
 
   const [formData, setFormData] = useState({
     leaveType: '',
@@ -34,9 +41,19 @@ export default function ApplyLeave() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
+      if (fromCalendarRef.current && !fromCalendarRef.current.contains(event.target)) {
+        setShowFromCalendar(false);
+      }
+      if (toCalendarRef.current && !toCalendarRef.current.contains(event.target)) {
+        setShowToCalendar(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -75,6 +92,18 @@ export default function ApplyLeave() {
     if (e.target.files && e.target.files[0]) {
       setFormData(prev => ({ ...prev, document: e.target.files[0] }));
     }
+  };
+
+  const handleFromDateChange = (date) => {
+    const formattedDate = date.toLocaleDateString('en-CA');
+    setFormData(prev => ({ ...prev, fromDate: formattedDate }));
+    setShowFromCalendar(false);
+  };
+
+  const handleToDateChange = (date) => {
+    const formattedDate = date.toLocaleDateString('en-CA');
+    setFormData(prev => ({ ...prev, toDate: formattedDate }));
+    setShowToCalendar(false);
   };
 
   const handleSubmit = async (e) => {
@@ -164,57 +193,83 @@ export default function ApplyLeave() {
             <div className="px-5 mt-5 relative z-10 flex-1 pb-6 w-full box-border">
               <form onSubmit={handleSubmit} className="bg-white rounded-[24px] shadow-[0_4px_25px_rgb(0,0,0,0.03)] p-5 border border-gray-50 w-full overflow-visible box-border">
                 
-                <div className="mb-4 relative w-full" ref={dropdownRef}>
+                <div className="mb-4 relative w-full dropdown" ref={dropdownRef}>
                   <label className="text-[11px] font-bold text-gray-900 mb-1.5 block">Leave Type</label>
-                  <div 
+                  <button
+                    type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-[12px] text-gray-800 bg-gray-50/50 flex items-center justify-between cursor-pointer box-border"
+                    className="dropdown-toggle w-full border border-gray-200 rounded-xl px-4 py-3.5 text-[12px] text-gray-800 bg-gray-50/50 flex items-center justify-between cursor-pointer box-border focus:outline-none"
                   >
                     <span className="truncate">{formData.leaveType || 'Select Leave Type'}</span>
-                    <svg className={`w-4 h-4 text-gray-400 absolute right-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
+                    <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  </button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                    <ul className="dropdown-menu block absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl p-1 max-h-48 overflow-y-auto">
                       {leaveOptions.map((option, idx) => (
-                        <div 
-                          key={idx}
-                          onClick={() => handleLeaveTypeSelect(option)}
-                          className="px-4 py-3 text-[12px] text-gray-800 hover:bg-indigo-50 hover:text-[#5B3CD8] cursor-pointer transition-colors border-b border-gray-50 last:border-0"
-                        >
-                          {option}
-                        </div>
+                        <li key={idx}>
+                          <button
+                            type="button"
+                            onClick={() => handleLeaveTypeSelect(option)}
+                            className="dropdown-item w-full text-left px-4 py-2.5 text-[12px] text-gray-700 rounded-lg hover:bg-indigo-50 hover:text-[#5B3CD8] transition-colors outline-none"
+                          >
+                            {option}
+                          </button>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-4 w-full box-border">
-                  <div className="w-full min-w-0">
-                    <label className="text-[11px] font-bold text-gray-900 mb-1.5 block">From Date</label>
-                    <div className="relative w-full">
-                      <input 
-                        type="date" 
-                        name="fromDate"
-                        value={formData.fromDate}
-                        onChange={handleInputChange}
-                        className="w-full max-w-full block border border-gray-200 rounded-xl px-2.5 py-3.5 text-[11px] text-gray-800 bg-gray-50/50 focus:border-[#5B3CD8] focus:ring-1 focus:ring-[#5B3CD8] outline-none box-border m-0"
-                      />
+                <div className="grid grid-cols-2 gap-2 mb-4 w-full relative">
+                  
+                  <div className="w-full min-w-0 relative" ref={fromCalendarRef}>
+                    <label className="text-[10px] font-bold text-gray-900 mb-1 block truncate">From Date</label>
+                    <div 
+                      onClick={() => { setShowFromCalendar(!showFromCalendar); setShowToCalendar(false); }}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 px-3 text-[11px] font-medium text-gray-800 flex items-center justify-between cursor-pointer box-border"
+                    >
+                      <span className="truncate">{formData.fromDate || 'Select'}</span>
+                      <svg className="w-3.5 h-3.5 text-[#5B3CD8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                      </svg>
                     </div>
+
+                    {showFromCalendar && (
+                      <div className="absolute left-0 z-50 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl p-2 w-[280px] sm:w-[300px]">
+                        <Calendar 
+                          onChange={handleFromDateChange} 
+                          value={formData.fromDate ? new Date(formData.fromDate) : new Date()}
+                          className="rounded-xl border-none text-xs w-full"
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div className="w-full min-w-0">
-                    <label className="text-[11px] font-bold text-gray-900 mb-1.5 block">To Date</label>
-                    <div className="relative w-full">
-                      <input 
-                        type="date" 
-                        name="toDate"
-                        value={formData.toDate}
-                        min={formData.fromDate}
-                        onChange={handleInputChange}
-                        className="w-full max-w-full block border border-gray-200 rounded-xl px-2.5 py-3.5 text-[11px] text-gray-800 bg-gray-50/50 focus:border-[#5B3CD8] focus:ring-1 focus:ring-[#5B3CD8] outline-none box-border m-0"
-                      />
+                  
+                  <div className="w-full min-w-0 relative" ref={toCalendarRef}>
+                    <label className="text-[10px] font-bold text-gray-900 mb-1 block truncate">To Date</label>
+                    <div 
+                      onClick={() => { setShowToCalendar(!showToCalendar); setShowFromCalendar(false); }}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 px-3 text-[11px] font-medium text-gray-800 flex items-center justify-between cursor-pointer box-border"
+                    >
+                      <span className="truncate">{formData.toDate || 'Select'}</span>
+                      <svg className="w-3.5 h-3.5 text-[#5B3CD8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                      </svg>
                     </div>
+
+                    {showToCalendar && (
+                      <div className="absolute right-0 z-50 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl p-2 w-[280px] sm:w-[300px]">
+                        <Calendar 
+                          onChange={handleToDateChange} 
+                          value={formData.toDate ? new Date(formData.toDate) : new Date()}
+                          minDate={formData.fromDate ? new Date(formData.fromDate) : new Date()}
+                          className="rounded-xl border-none text-xs w-full"
+                        />
+                      </div>
+                    )}
                   </div>
+
                 </div>
 
                 <div className="mb-4 flex items-center gap-3">
