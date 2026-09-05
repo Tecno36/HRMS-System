@@ -25,7 +25,9 @@ export default function DashboardLayout() {
         logo: parsedUser.logo || '' 
       });
       
+      fetchUserProfile(token);
       fetchCompanySettings(token);
+      
       if (parsedUser.role === 'Super Admin') {
         fetchSearchData(token);
       }
@@ -40,6 +42,16 @@ export default function DashboardLayout() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate]);
+
+  const fetchUserProfile = async (token) => {
+    try {
+      const res = await axios.get('/auth/profile', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data && res.data.data) {
+        setUser(res.data.data);
+        localStorage.setItem('user', JSON.stringify(res.data.data));
+      }
+    } catch (err) {}
+  };
 
   const fetchCompanySettings = async (token) => {
     try {

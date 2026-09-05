@@ -125,6 +125,7 @@ exports.clockIn = async (req, res) => {
 exports.clockOut = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { earlyLeaveReason } = req.body;
 
     const today = new Date().toLocaleDateString('en-CA');
     const startOfDay = new Date(`${today}T00:00:00+05:30`);
@@ -149,6 +150,10 @@ exports.clockOut = async (req, res) => {
     const diffMs = currentTime - attendance.clockIn;
     const diffHrs = (diffMs / (1000 * 60 * 60)).toFixed(2);
     attendance.totalHours = parseFloat(diffHrs);
+
+    if (earlyLeaveReason) {
+      attendance.earlyLeaveReason = earlyLeaveReason;
+    }
 
     await attendance.save();
 

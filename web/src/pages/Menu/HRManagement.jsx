@@ -9,8 +9,8 @@ export default function HRManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', dob: '', gender: 'Male', department: '' });
-  const [editData, setEditData] = useState({ id: '', name: '', email: '', phone: '', dob: '', gender: 'Male', department: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', dob: '', gender: 'Male', department: '', designation: '', salary: '', bankName: '', accountNumber: '', ifscCode: '', panNumber: '' });
+  const [editData, setEditData] = useState({ id: '', name: '', email: '', phone: '', dob: '', gender: 'Male', department: '', designation: '', salary: '', bankName: '', accountNumber: '', ifscCode: '', panNumber: '' });
   const [deleteId, setDeleteId] = useState(null);
   
   const [error, setError] = useState('');
@@ -49,7 +49,7 @@ export default function HRManagement() {
   }, [success, error]);
 
   const handleChange = (e, isEdit = false) => {
-    const value = e.target.name === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value;
+    const value = e.target.name === 'phone' || e.target.name === 'salary' ? e.target.value.replace(/\D/g, '') : e.target.value;
     
     if (isEdit) {
       setEditData({ ...editData, [e.target.name]: value });
@@ -62,18 +62,24 @@ export default function HRManagement() {
     }
   };
 
-  const validateForm = (data) => {
+  const validateForm = (data, isEdit = false) => {
     const errors = {};
     if (!data.name.trim()) errors.name = 'Full Name is required';
-    if (!data.email.trim()) {
-      errors.email = 'Email Address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errors.email = 'Enter a valid email address';
+    
+    if (!isEdit) {
+      if (!data.email.trim()) {
+        errors.email = 'Email Address is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        errors.email = 'Enter a valid email address';
+      }
     }
+    
     if (data.phone && data.phone.length !== 10) {
       errors.phone = 'Phone number must be exactly 10 digits';
     }
-    if (!data.department) errors.department = 'Please select a department';
+    if (!data.department) errors.department = 'Department is required';
+    if (!data.designation) errors.designation = 'Designation is required';
+    if (!data.salary) errors.salary = 'Salary is required';
     
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -81,7 +87,7 @@ export default function HRManagement() {
 
   const handleAddHR = async (e) => {
     e.preventDefault();
-    if (!validateForm(formData)) return;
+    if (!validateForm(formData, false)) return;
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -89,7 +95,7 @@ export default function HRManagement() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess('HR successfully added! Credentials sent to email.');
-      setFormData({ name: '', email: '', phone: '', dob: '', gender: 'Male', department: '' });
+      setFormData({ name: '', email: '', phone: '', dob: '', gender: 'Male', department: '', designation: '', salary: '', bankName: '', accountNumber: '', ifscCode: '', panNumber: '' });
       setFieldErrors({});
       setShowModal(false);
       fetchHRs();
@@ -103,12 +109,18 @@ export default function HRManagement() {
   const openEditModal = (hr) => {
     setEditData({ 
       id: hr._id, 
-      name: hr.name, 
-      email: hr.email, 
+      name: hr.name || '', 
+      email: hr.userId?.email || hr.email || '', 
       phone: hr.phone || '', 
-      dob: hr.dob || '',
+      dob: hr.dob ? new Date(hr.dob).toISOString().split('T')[0] : '',
       gender: hr.gender || 'Male',
-      department: hr.department 
+      department: hr.department || '',
+      designation: hr.designation || '',
+      salary: hr.salary || '',
+      bankName: hr.bankName || '',
+      accountNumber: hr.accountNumber || '',
+      ifscCode: hr.ifscCode || '',
+      panNumber: hr.panNumber || ''
     });
     setFieldErrors({});
     setShowEditModal(true);
@@ -116,7 +128,7 @@ export default function HRManagement() {
 
   const handleEditHR = async (e) => {
     e.preventDefault();
-    if (!validateForm(editData)) return;
+    if (!validateForm(editData, true)) return;
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -153,9 +165,9 @@ export default function HRManagement() {
   };
 
   const filteredHRs = hrs.filter(hr => 
-    hr.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hr.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hr.department.toLowerCase().includes(searchTerm.toLowerCase())
+    (hr.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (hr.userId?.email || hr.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (hr.department || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredHRs.length / itemsPerPage);
@@ -216,13 +228,11 @@ export default function HRManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                <th className="px-6 py-5 rounded-tl-3xl">Employee</th>
+                <th className="px-6 py-5 rounded-tl-3xl">HR Name</th>
                 <th className="px-6 py-5">Contact Info</th>
-                <th className="px-6 py-5">DOB</th>
-                <th className="px-6 py-5">Gender</th>
-                <th className="px-6 py-5">Department</th>
+                <th className="px-6 py-5">Work Details</th>
                 <th className="px-6 py-5">Role</th>
-                <th className="px-6 py-5">Status</th>
+                <th className="px-6 py-5 text-center">Status</th>
                 <th className="px-6 py-5 text-center rounded-tr-3xl">Actions</th>
                 </tr>
             </thead>
@@ -233,7 +243,7 @@ export default function HRManagement() {
                     <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-lg border border-indigo-100 shadow-sm group-hover:scale-105 transition-transform">
-                            {hr.name.charAt(0)}
+                            {hr.name?.charAt(0) || 'U'}
                         </div>
                         <div>
                             <p className="font-bold text-gray-900">{hr.name}</p>
@@ -245,7 +255,7 @@ export default function HRManagement() {
                         <div className="space-y-1">
                         <p className="text-gray-700 font-medium flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            {hr.email}
+                            {hr.userId?.email || hr.email || 'N/A'}
                         </p>
                         <p className="text-gray-500 text-xs font-medium flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -253,29 +263,37 @@ export default function HRManagement() {
                         </p>
                         </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-700 font-medium">
-                        {hr.dob || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 text-gray-700 font-medium">
-                        {hr.gender || 'N/A'}
-                    </td>
                     <td className="px-6 py-4">
-                        <span className="inline-flex px-3 py-1.5 bg-blue-50 border border-blue-100 text-blue-700 rounded-lg text-xs font-bold tracking-wide">
-                        {hr.department}
+                      <div className="space-y-1">
+                        <span className="inline-flex px-3 py-1 bg-blue-50 border border-blue-100 text-blue-700 rounded-lg text-[11px] font-bold tracking-wide">
+                          {hr.department || 'N/A'}
                         </span>
+                        <p className="text-gray-700 text-xs font-medium ml-1 mt-1">
+                          {hr.designation || 'HR Manager'}
+                        </p>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                         <span className="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
                         HR Admin
                         </span>
                     </td>
-                    <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-sm font-bold text-emerald-600">Active</span>
+                    <td className="px-6 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {(hr.userId?.isActive ?? true) ? (
+                            <>
+                              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                              <span className="text-sm font-bold text-emerald-600">Active</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                              <span className="text-sm font-bold text-red-600">Inactive</span>
+                            </>
+                          )}
                         </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-3">
                         <button 
                             onClick={() => openEditModal(hr)}
@@ -295,11 +313,11 @@ export default function HRManagement() {
                 ))
                     ) : (
                     <tr>
-                    <td colSpan="8" className="px-2 py-12 text-center">
+                    <td colSpan="6" className="px-2 py-12 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <img src={hrEmptyImg} alt="No HR Found" className="w-64 h-64 object-contain" />
                         <p className="mt-4 text-sm font-medium text-gray-500">No HR Administrators found.</p>
-                     </div>
+                      </div>
                    </td>
                 </tr>
                 )}
@@ -343,23 +361,23 @@ export default function HRManagement() {
       </div>
 
       {(showModal || showEditModal) && createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <div 
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity"
             onClick={() => !loading && (showModal ? setShowModal(false) : setShowEditModal(false))}
           ></div>
 
-          <div className="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border border-white p-8 overflow-hidden transform transition-all">
+          <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-[2rem] shadow-2xl border border-white overflow-hidden transform transition-all">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
             
-            <div className="relative z-10">
-              <div className="flex justify-between items-center mb-8">
+            <div className="relative z-10 flex-shrink-0 p-8 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+              <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">
                     {showEditModal ? 'Edit HR Profile' : 'Create HR Profile'}
                   </h3>
                   <p className="text-sm text-gray-500 font-medium mt-1">
-                    {showEditModal ? 'Update the details for this HR admin.' : 'Credentials will be securely emailed to the user.'}
+                    {showEditModal ? 'Update the details for this HR admin.' : 'Enter personal, work, and bank details for the new HR.'}
                   </p>
                 </div>
                 <button 
@@ -374,164 +392,215 @@ export default function HRManagement() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
+            </div>
 
+            <div className="overflow-y-auto p-8 relative z-10">
               <form onSubmit={showEditModal ? handleEditHR : handleAddHR} noValidate className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <h4 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-4">Personal Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700 ml-1">Full Name</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className={`w-5 h-5 ${fieldErrors.name ? 'text-red-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                      </div>
-                      <input 
-                        type="text" 
-                        name="name" 
-                        value={showEditModal ? editData.name : formData.name} 
-                        onChange={(e) => handleChange(e, showEditModal)} 
-                        className={`w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 ${fieldErrors.name ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`} 
-                        placeholder="John Doe" 
-                      />
-                    </div>
+                    <input 
+                      type="text" 
+                      name="name" 
+                      value={showEditModal ? editData.name : formData.name} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className={`w-full px-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 ${fieldErrors.name ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`} 
+                      placeholder="John Doe" 
+                    />
                     {fieldErrors.name && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.name}</p>}
                   </div>
 
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700 ml-1">Email Address</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className={`w-5 h-5 ${fieldErrors.email ? 'text-red-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                      </div>
-                      <input 
-                        type="email" 
-                        name="email" 
-                        value={showEditModal ? editData.email : formData.email} 
-                        onChange={(e) => handleChange(e, showEditModal)} 
-                        disabled={showEditModal}
-                        className={`w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium focus:outline-none transition-all placeholder:text-gray-400 ${showEditModal ? 'text-gray-500 cursor-not-allowed border-gray-200' : fieldErrors.email ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500 text-gray-900' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white text-gray-900'}`} 
-                        placeholder="hr@company.com" 
-                      />
-                    </div>
+                    <input 
+                      type="email" 
+                      name="email" 
+                      value={showEditModal ? editData.email : formData.email} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      disabled={showEditModal}
+                      className={`w-full px-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium focus:outline-none transition-all placeholder:text-gray-400 ${showEditModal ? 'text-gray-500 cursor-not-allowed border-gray-200' : fieldErrors.email ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500 text-gray-900' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white text-gray-900'}`} 
+                      placeholder="hr@company.com" 
+                    />
                     {fieldErrors.email && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.email}</p>}
                   </div>
 
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700 ml-1">Phone Number <span className="text-gray-400 font-normal">(Optional)</span></label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className={`w-5 h-5 ${fieldErrors.phone ? 'text-red-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                      </div>
-                      <input 
-                        type="text" 
-                        name="phone" 
-                        value={showEditModal ? editData.phone : formData.phone} 
-                        onChange={(e) => handleChange(e, showEditModal)} 
-                        className={`w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 ${fieldErrors.phone ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`} 
-                        placeholder="10-digit mobile number" 
-                      />
-                    </div>
+                    <input 
+                      type="text" 
+                      name="phone" 
+                      value={showEditModal ? editData.phone : formData.phone} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className={`w-full px-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 ${fieldErrors.phone ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`} 
+                      placeholder="10-digit mobile number" 
+                    />
                     {fieldErrors.phone && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.phone}</p>}
                   </div>
 
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700 ml-1">Date of Birth</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                      </div>
-                      <input 
-                        type="date" 
-                        name="dob" 
-                        value={showEditModal ? editData.dob : formData.dob} 
-                        onChange={(e) => handleChange(e, showEditModal)} 
-                        className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all" 
-                      />
-                    </div>
+                    <input 
+                      type="date" 
+                      name="dob" 
+                      value={showEditModal ? editData.dob : formData.dob} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all" 
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-700 ml-1">Gender</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                      </div>
-                      <select 
-                        name="gender" 
-                        value={showEditModal ? editData.gender : formData.gender} 
-                        onChange={(e) => handleChange(e, showEditModal)} 
-                        className="w-full appearance-none pl-11 pr-10 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all cursor-pointer"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                      </div>
-                    </div>
+                    <select 
+                      name="gender" 
+                      value={showEditModal ? editData.gender : formData.gender} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all cursor-pointer"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <h4 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">Work Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700 ml-1">Department</label>
+                    <select 
+                      name="department" 
+                      value={showEditModal ? editData.department : formData.department} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className={`w-full px-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all cursor-pointer ${fieldErrors.department ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`}
+                    >
+                      <option value="" disabled>Select Department</option>
+                      <option value="IT">IT</option>
+                      <option value="HR">HR</option>
+                      <option value="Sales">Sales</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Operations">Operations</option>
+                      <option value="Management">Management</option>
+                    </select>
+                    {fieldErrors.department && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.department}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-700 ml-1">Department</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className={`w-5 h-5 ${fieldErrors.department ? 'text-red-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                      </div>
-                      <select 
-                        name="department" 
-                        value={showEditModal ? editData.department : formData.department} 
-                        onChange={(e) => handleChange(e, showEditModal)} 
-                        className={`w-full appearance-none pl-11 pr-10 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all cursor-pointer ${fieldErrors.department ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`}
-                      >
-                        <option value="" disabled>Select Department</option>
-                        <option value="IT">IT</option>
-                        <option value="HR">HR</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Management">Management</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                      </div>
-                    </div>
-                    {fieldErrors.department && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.department}</p>}
+                    <label className="block text-sm font-bold text-gray-700 ml-1">Designation</label>
+                    <input 
+                      type="text" 
+                      name="designation" 
+                      value={showEditModal ? editData.designation : formData.designation} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className={`w-full px-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 ${fieldErrors.designation ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`} 
+                      placeholder="e.g. Senior HR Manager" 
+                    />
+                    {fieldErrors.designation && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.designation}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700 ml-1">Basic Salary</label>
+                    <input 
+                      type="text" 
+                      name="salary" 
+                      value={showEditModal ? editData.salary : formData.salary} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className={`w-full px-4 py-3.5 bg-gray-50/50 border rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 ${fieldErrors.salary ? 'border-red-400 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500/10 focus:border-indigo-500'}`} 
+                      placeholder="e.g. 45000" 
+                    />
+                    {fieldErrors.salary && <p className="text-xs text-red-500 font-bold ml-1">{fieldErrors.salary}</p>}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-4 pt-6 mt-6 border-t border-gray-100">
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setShowModal(false);
-                      setShowEditModal(false);
-                      setFieldErrors({});
-                    }} 
-                    disabled={loading}
-                    className="px-6 py-3.5 text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loading} 
-                    className="relative px-8 py-3.5 text-sm font-bold text-white bg-[#101a3d] hover:bg-indigo-600 rounded-xl shadow-xl shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden group"
-                  >
-                    {loading ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Saving...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        {showEditModal ? 'Save Changes' : 'Create HR Profile'}
-                        <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
-                      </span>
-                    )}
-                  </button>
+                <h4 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">Bank Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700 ml-1">Bank Name</label>
+                    <input 
+                      type="text" 
+                      name="bankName" 
+                      value={showEditModal ? editData.bankName : formData.bankName} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 focus:ring-indigo-500/10 focus:border-indigo-500" 
+                      placeholder="e.g. HDFC Bank" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700 ml-1">Account Number</label>
+                    <input 
+                      type="text" 
+                      name="accountNumber" 
+                      value={showEditModal ? editData.accountNumber : formData.accountNumber} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 focus:ring-indigo-500/10 focus:border-indigo-500" 
+                      placeholder="Enter Account Number" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700 ml-1">IFSC Code</label>
+                    <input 
+                      type="text" 
+                      name="ifscCode" 
+                      value={showEditModal ? editData.ifscCode : formData.ifscCode} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 focus:ring-indigo-500/10 focus:border-indigo-500 uppercase" 
+                      placeholder="e.g. HDFC0001234" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-gray-700 ml-1">PAN Number</label>
+                    <input 
+                      type="text" 
+                      name="panNumber" 
+                      value={showEditModal ? editData.panNumber : formData.panNumber} 
+                      onChange={(e) => handleChange(e, showEditModal)} 
+                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:bg-white transition-all placeholder:text-gray-400 focus:ring-indigo-500/10 focus:border-indigo-500 uppercase" 
+                      placeholder="e.g. ABCDE1234F" 
+                    />
+                  </div>
                 </div>
               </form>
             </div>
+
+            <div className="flex-shrink-0 flex items-center justify-end gap-4 p-6 border-t border-gray-100 bg-gray-50/80">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowModal(false);
+                  setShowEditModal(false);
+                  setFieldErrors({});
+                }} 
+                disabled={loading}
+                className="px-6 py-3.5 text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl border border-transparent hover:border-gray-200 shadow-sm transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={showEditModal ? handleEditHR : handleAddHR}
+                disabled={loading} 
+                className="relative px-8 py-3.5 text-sm font-bold text-white bg-[#101a3d] hover:bg-indigo-600 rounded-xl shadow-xl shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden group"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Saving...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    {showEditModal ? 'Save Changes' : 'Create HR Profile'}
+                    <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </span>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>,
         document.body
