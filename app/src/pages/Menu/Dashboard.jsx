@@ -9,6 +9,13 @@ export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user')) || { name: 'User', _id: '', id: '', avatar: '' };
   
   const [isPunchModalOpen, setIsPunchModalOpen] = useState(false);
+  const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
+  const [earlyReason, setEarlyReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const [punchAction, setPunchAction] = useState('in');
   const [locationStr, setLocationStr] = useState('Fetching location...');
   const [validationMsg, setValidationMsg] = useState('Look straight into the camera');
@@ -27,10 +34,32 @@ export default function Dashboard() {
   const framesCaptured = useRef(0);
   const maxFrames = 6; 
 
+  const leaveOptions = [
+    'Medical Emergency',
+    'Family Emergency',
+    'Manager Approval',
+    'Personal Work',
+    'Other'
+  ];
+
   useEffect(() => {
     fetchTodayAttendance();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const fetchTodayAttendance = async () => {
@@ -133,10 +162,17 @@ export default function Dashboard() {
     try {
       const endpoint = punchAction === 'in' ? '/attendance/clock-in' : '/attendance/clock-out';
       
-      const response = await axios.post(endpoint, {});
+      const payload = {};
+      if (punchAction === 'out' && earlyReason) {
+        payload.earlyLeaveReason = earlyReason === 'Other' ? customReason : earlyReason;
+      }
+
+      const response = await axios.post(endpoint, payload);
 
       if (response.data.status === 'success') {
         setIsPunchModalOpen(false);
+        setEarlyReason('');
+        setCustomReason('');
         showToast(response.data.message, 'success');
         fetchTodayAttendance(); 
       }
@@ -172,6 +208,29 @@ export default function Dashboard() {
 
   const openPunchModal = (action) => {
     setPunchAction(action);
+    if (action === 'out') {
+      const totalWorkedMinutes = (liveWorkedHours * 60) + liveWorkedMinutes;
+      const requiredMinutes = 525; 
+
+      if (totalWorkedMinutes < requiredMinutes) {
+        setIsReasonModalOpen(true);
+        return;
+      }
+    }
+    setIsPunchModalOpen(true);
+  };
+
+  const handleReasonSubmit = () => {
+    if (!earlyReason) {
+      showToast('Please select a reason for leaving early', 'error');
+      return;
+    }
+    if (earlyReason === 'Other' && !customReason.trim()) {
+      showToast('Please specify the reason', 'error');
+      return;
+    }
+    
+    setIsReasonModalOpen(false);
     setIsPunchModalOpen(true);
   };
 
@@ -381,6 +440,82 @@ export default function Dashboard() {
             </div>
 
           </div>
+
+          {isReasonModalOpen && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
+              <div className="bg-white w-full max-w-sm rounded-3xl p-6 flex flex-col relative">
+                <button 
+                  onClick={() => setIsReasonModalOpen(false)}
+                  className="absolute top-4 right-4 text-gray-400 bg-gray-100 rounded-full p-1 z-20"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+
+                <div className="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+
+                <h3 className="text-lg font-bold text-gray-900 mb-2 text-center">Leaving Early?</h3>
+                <p className="text-xs text-gray-500 text-center mb-6">
+                  You are punching out before completing 9 hours. Please select a reason to continue.
+                </p>
+
+                <div className="space-y-4 w-full">
+                  
+                  <div className="mb-4 relative w-full dropdown" ref={dropdownRef}>
+                    <label className="text-[11px] font-bold text-gray-900 mb-1.5 block">Reason for Early Leave</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="dropdown-toggle w-full border border-gray-200 rounded-xl px-4 py-3.5 text-[12px] text-gray-800 bg-gray-50/50 flex items-center justify-between cursor-pointer box-border focus:outline-none"
+                    >
+                      <span className="truncate">{earlyReason || 'Select a reason...'}</span>
+                      <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    
+                    {isDropdownOpen && (
+                      <ul className="dropdown-menu block absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl p-1 max-h-48 overflow-y-auto">
+                        {leaveOptions.map((option, idx) => (
+                          <li key={idx}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEarlyReason(option);
+                                setIsDropdownOpen(false);
+                              }}
+                              className="dropdown-item w-full text-left px-4 py-2.5 text-[12px] text-gray-700 rounded-lg hover:bg-indigo-50 hover:text-[#5B3CD8] transition-colors outline-none"
+                            >
+                              {option}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {earlyReason === 'Other' && (
+                    <div className="mt-3">
+                      <label className="text-[11px] font-bold text-gray-900 mb-1.5 block">Specify Reason</label>
+                      <input 
+                        type="text"
+                        value={customReason}
+                        onChange={(e) => setCustomReason(e.target.value)}
+                        placeholder="Please type here..."
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-[12px] text-gray-800 bg-gray-50/50 focus:border-[#5B3CD8] focus:ring-1 focus:ring-[#5B3CD8] outline-none box-border"
+                      />
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={handleReasonSubmit}
+                    className="w-full py-3.5 mt-2 bg-[#5B3CD8] text-white font-bold rounded-xl shadow-lg shadow-[#5B3CD8]/30 active:scale-95 transition-all"
+                  >
+                    Proceed to Camera Verification
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {isPunchModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">

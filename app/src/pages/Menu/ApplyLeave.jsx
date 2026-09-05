@@ -9,7 +9,7 @@ import MainLayout from '../../layouts/MainLayout';
 export default function ApplyLeave() {
   const history = useHistory();
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [toast, setShowToastState] = useState({ show: false, message: '', type: '' });
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -25,6 +25,13 @@ export default function ApplyLeave() {
     toDate: '',
     reason: '',
     document: null
+  });
+
+  const [errors, setErrors] = useState({
+    leaveType: '',
+    fromDate: '',
+    toDate: '',
+    reason: ''
   });
   
   const [totalDays, setTotalDays] = useState(0);
@@ -74,18 +81,22 @@ export default function ApplyLeave() {
   }, [formData.fromDate, formData.toDate]);
 
   const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+    setShowToastState({ show: true, message, type });
+    setTimeout(() => setShowToastState({ show: false, message: '', type: '' }), 3000);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (value) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleLeaveTypeSelect = (type) => {
     setFormData(prev => ({ ...prev, leaveType: type }));
     setIsDropdownOpen(false);
+    setErrors(prev => ({ ...prev, leaveType: '' }));
   };
 
   const handleFileChange = (e) => {
@@ -95,27 +106,80 @@ export default function ApplyLeave() {
   };
 
   const handleFromDateChange = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (date < today) {
+      setErrors(prev => ({ ...prev, fromDate: 'Past dates are not allowed' }));
+      return;
+    }
+
     const formattedDate = date.toLocaleDateString('en-CA');
-    setFormData(prev => ({ ...prev, fromDate: formattedDate }));
+    setFormData(prev => ({ 
+      ...prev, 
+      fromDate: formattedDate,
+      toDate: prev.toDate && prev.toDate < formattedDate ? '' : prev.toDate 
+    }));
     setShowFromCalendar(false);
+    setErrors(prev => ({ ...prev, fromDate: '', toDate: '' }));
   };
 
   const handleToDateChange = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (date < today) {
+      setErrors(prev => ({ ...prev, toDate: 'Past dates are not allowed' }));
+      return;
+    }
+
+    if (formData.fromDate && date < new Date(formData.fromDate)) {
+      setErrors(prev => ({ ...prev, toDate: 'To Date cannot be before From Date' }));
+      return;
+    }
+
     const formattedDate = date.toLocaleDateString('en-CA');
     setFormData(prev => ({ ...prev, toDate: formattedDate }));
     setShowToCalendar(false);
+    setErrors(prev => ({ ...prev, toDate: '' }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.leaveType || !formData.fromDate || !formData.toDate || !formData.reason) {
-      showToast('Please fill all mandatory fields', 'error');
+    let newErrors = { leaveType: '', fromDate: '', toDate: '', reason: '' };
+    let hasError = false;
+
+    if (!formData.leaveType) {
+      newErrors.leaveType = 'Please select leave type';
+      hasError = true;
+    }
+    if (!formData.fromDate) {
+      newErrors.fromDate = 'Please select from date';
+      hasError = true;
+    }
+    if (!formData.toDate) {
+      newErrors.toDate = 'Please select to date';
+      hasError = true;
+    }
+    if (!formData.reason.trim()) {
+      newErrors.reason = 'Please enter reason';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    if (formData.fromDate < todayStr) {
+      setErrors(prev => ({ ...prev, fromDate: 'Cannot select past dates' }));
       return;
     }
 
     if (totalDays <= 0) {
-      showToast('To Date must be greater than or equal to From Date', 'error');
+      setErrors(prev => ({ ...prev, toDate: 'To Date must be greater than or equal to From Date' }));
       return;
     }
 
@@ -147,11 +211,14 @@ export default function ApplyLeave() {
     }
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <MainLayout>
       <IonPage>
         <IonContent scrollY={true} className="ion-no-padding">
-          <div className="min-h-full w-full max-w-full overflow-x-hidden bg-[#F8F9FE] flex flex-col font-sans relative pb-28 select-none box-border">
+          <div className="min-h-full w-full max-w-full overflow-x-hidden bg-[#F8F9FE] flex flex-col font-sans relative pb-12 select-none box-border">
             
             {toast.show && (
               <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] animate-fade-in-down w-[90%] max-w-sm">
@@ -203,6 +270,7 @@ export default function ApplyLeave() {
                     <span className="truncate">{formData.leaveType || 'Select Leave Type'}</span>
                     <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   </button>
+                  {errors.leaveType && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.leaveType}</p>}
                   
                   {isDropdownOpen && (
                     <ul className="dropdown-menu block absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl p-1 max-h-48 overflow-y-auto">
@@ -234,12 +302,14 @@ export default function ApplyLeave() {
                         <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
                       </svg>
                     </div>
+                    {errors.fromDate && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.fromDate}</p>}
 
                     {showFromCalendar && (
                       <div className="absolute left-0 z-50 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl p-2 w-[280px] sm:w-[300px]">
                         <Calendar 
                           onChange={handleFromDateChange} 
                           value={formData.fromDate ? new Date(formData.fromDate) : new Date()}
+                          minDate={today}
                           className="rounded-xl border-none text-xs w-full"
                         />
                       </div>
@@ -257,13 +327,14 @@ export default function ApplyLeave() {
                         <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
                       </svg>
                     </div>
+                    {errors.toDate && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.toDate}</p>}
 
                     {showToCalendar && (
                       <div className="absolute right-0 z-50 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl p-2 w-[280px] sm:w-[300px]">
                         <Calendar 
                           onChange={handleToDateChange} 
                           value={formData.toDate ? new Date(formData.toDate) : new Date()}
-                          minDate={formData.fromDate ? new Date(formData.fromDate) : new Date()}
+                          minDate={formData.fromDate ? new Date(formData.fromDate) : today}
                           className="rounded-xl border-none text-xs w-full"
                         />
                       </div>
@@ -293,6 +364,7 @@ export default function ApplyLeave() {
                     className="w-full max-w-full block border border-gray-200 rounded-xl px-4 py-3 text-[12px] text-gray-800 bg-gray-50/50 focus:border-[#5B3CD8] focus:ring-1 focus:ring-[#5B3CD8] outline-none resize-none box-border m-0"
                     placeholder="Write reason for leave..."
                   ></textarea>
+                  {errors.reason && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.reason}</p>}
                 </div>
 
                 <div className="mb-6 w-full box-border">
@@ -323,29 +395,6 @@ export default function ApplyLeave() {
                   )}
                 </button>
               </form>
-            </div>
-
-            <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 flex justify-between items-center pt-3 pb-5 px-6 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgb(0,0,0,0.03)] shrink-0 box-border">
-              <Link to="/dashboard" className="flex flex-col items-center gap-1">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                <span className="text-[10px] font-medium text-gray-400">Home</span>
-              </Link>
-              <Link to="/team" className="flex flex-col items-center gap-1">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                <span className="text-[10px] font-medium text-gray-400">My Team</span>
-              </Link>
-              <Link to="/requests" className="flex flex-col items-center gap-1">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                <span className="text-[10px] font-medium text-gray-400">Requests</span>
-              </Link>
-              <Link to="/leaves" className="flex flex-col items-center gap-1">
-                <svg className="w-6 h-6 text-[#5B3CD8]" fill="currentColor" viewBox="0 0 20 20"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
-                <span className="text-[10px] font-bold text-[#5B3CD8]">Leaves</span>
-              </Link>
-              <Link to="/profile" className="flex flex-col items-center gap-1">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span className="text-[10px] font-medium text-gray-400">Profile</span>
-              </Link>
             </div>
 
           </div>
