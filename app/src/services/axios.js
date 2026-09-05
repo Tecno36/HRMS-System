@@ -1,12 +1,14 @@
 import axios from 'axios';
 import { Capacitor } from '@capacitor/core';
 
-const apiBaseUrl = Capacitor.isNativePlatform() 
-  ? 'http://192.168.1.46:5000/api' 
-  : 'http://localhost:5000/api';  
+const isLocalWeb = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+const apiBaseUrl = Capacitor.isNativePlatform()
+  ? 'https://hrms-system-yri7.onrender.com/api'
+  : (isLocalWeb ? 'http://localhost:5000/api' : 'https://hrms-system-yri7.onrender.com/api');
 
 const instance = axios.create({
-  baseURL: apiBaseUrl, 
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,6 +25,6 @@ instance.interceptors.request.use(
   (error) => {
     return Promise.reject(error);
   }
-);
+); 
 
 export default instance;
