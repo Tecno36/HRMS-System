@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from '../services/axios';
-import SearchModal from '../pages/navbar/SearchModal';
+import SearchModal from '../pages/Navbar/SearchModal';
 
 export default function DashboardLayout() {
   const [user, setUser] = useState(null);
