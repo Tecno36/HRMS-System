@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Employee = require('../models/Employee');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
@@ -62,6 +63,7 @@ exports.loginUser = async (req, res) => {
             return res.status(403).json({ message: 'Account is deactivated' });
         }
 
+        /*
         if (deviceId) {
             const existingDeviceUser = await User.findOne({ registeredDeviceId: deviceId, _id: { $ne: user._id } });
             if (existingDeviceUser) {
@@ -75,6 +77,7 @@ exports.loginUser = async (req, res) => {
                 return res.status(403).json({ message: 'You can only login from your registered device. Please contact HR.' });
             }
         }
+        */
 
         const token = jwt.sign(
             { id: user._id, role: user.role, companyName: user.companyName },
@@ -90,9 +93,9 @@ exports.loginUser = async (req, res) => {
                 companyName: user.companyName,
                 name: user.name,
                 email: user.email,
-                role: user.role,
                 phone: user.phone,
                 avatar: user.avatar,
+                role: user.role,
                 mPinSet: user.mPin ? true : false,
                 isBiometricEnabled: user.isBiometricEnabled ? true : false,
                 isFirstLogin: user.isFirstLogin !== undefined ? user.isFirstLogin : false
@@ -144,7 +147,7 @@ exports.forgotPasswordOTP = async (req, res) => {
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
                 <h2 style="color: #101a3d; text-align: center;">HRMS Password Reset</h2>
-                <p style="color: #475569; font-size: 16px;">Hello ${user.name},</p>
+                <p style="color: #475569; font-size: 16px;">Hello ${user.name || 'User'},</p>
                 <p style="color: #475569; font-size: 16px;">You requested a password reset. Here is your secure OTP:</p>
                 <div style="background-color: #f8fafc; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
                     <h1 style="color: #4f46d8; letter-spacing: 5px; margin: 0;">${otp}</h1>
@@ -194,17 +197,24 @@ exports.resetPassword = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id)
-            .select('-password')
-            .populate('assignedHR', 'name');
-
+        const user = await User.findById(req.user.id).select('-password');
         if (!user) {
             return res.status(404).json({ status: 'error', message: 'User not found' });
         }
 
+        let profileData = { ...user.toObject() };
+
+        if (user.role === 'Employee' || user.role === 'HR') {
+            const employeeDetails = await Employee.findOne({ userId: req.user.id })
+                .populate('assignedHR', 'email name');
+            if (employeeDetails) {
+                profileData = { ...profileData, ...employeeDetails.toObject() };
+            }
+        }
+
         res.status(200).json({
             status: 'success',
-            data: user
+            data: profileData
         });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
@@ -213,24 +223,36 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { name, phone, avatar } = req.body;
+        const { name, phone, avatar, address, emergencyContact } = req.body;
         const userId = req.user.id;
 
         const updatedUser = await User.findByIdAndUpdate(
-            userId, 
-            { name, phone, avatar }, 
+            userId,
+            { name, phone, avatar },
             { new: true }
-        )
-        .select('-password')
-        .populate('assignedHR', 'name');
+        ).select('-password');
 
         if (!updatedUser) {
             return res.status(404).json({ status: 'error', message: 'User not found' });
         }
 
+        let updatedEmployee = null;
+        if (updatedUser.role === 'Employee' || updatedUser.role === 'HR') {
+            updatedEmployee = await Employee.findOneAndUpdate(
+                { userId: userId },
+                { address, emergencyContact },
+                { new: true }
+            ).populate('assignedHR', 'email name');
+        }
+
+        const profileData = {
+            ...updatedUser.toObject(),
+            ...(updatedEmployee ? updatedEmployee.toObject() : {})
+        };
+
         res.status(200).json({
             status: 'success',
-            data: updatedUser
+            data: profileData
         });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
@@ -284,9 +306,9 @@ exports.loginWithMpin = async (req, res) => {
                 companyName: user.companyName,
                 name: user.name,
                 email: user.email,
-                role: user.role,
                 phone: user.phone,
                 avatar: user.avatar,
+                role: user.role,
                 mPinSet: true,
                 isBiometricEnabled: user.isBiometricEnabled ? true : false
             }
@@ -301,7 +323,7 @@ exports.toggleBiometric = async (req, res) => {
         const { isEnabled } = req.body;
         const userId = req.user.id;
 
-        const user = await User.findByIdAndUpdate(userId, { isBiometricEnabled: isEnabled }, { new: true });
+        const user = await User.findByIdAndUpdate(userId, { isBiometricEnabled: isEnabled }, { returnDocument: 'after' });
 
         return res.status(200).json({ status: 'success', isBiometricEnabled: user.isBiometricEnabled });
     } catch (error) {

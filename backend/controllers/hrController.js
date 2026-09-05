@@ -1,11 +1,12 @@
 const User = require('../models/User');
+const Employee = require('../models/Employee');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 
 exports.createHR = async (req, res) => {
     try {
-        const { name, email, phone, gender, dob, department } = req.body;
+        const { name, email, phone, gender, dob, department, designation, salary, bankName, accountNumber, ifscCode, panNumber } = req.body;
         const companyName = req.user.companyName;
 
         if (!name || !email || !department) {
@@ -17,11 +18,11 @@ exports.createHR = async (req, res) => {
             return res.status(400).json({ message: 'Email already registered' });
         }
 
-        const lastUser = await User.findOne({ companyName, employeeId: { $exists: true } }).sort({ createdAt: -1 });
+        const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
         let newEmployeeId = 'EMP-1001';
         
-        if (lastUser && lastUser.employeeId) {
-            const lastIdParts = lastUser.employeeId.split('-');
+        if (lastEmployee && lastEmployee.employeeId) {
+            const lastIdParts = lastEmployee.employeeId.split('-');
             if (lastIdParts.length === 2) {
                 const lastNumber = parseInt(lastIdParts[1]);
                 if (!isNaN(lastNumber)) {
@@ -34,21 +35,34 @@ exports.createHR = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(tempPassword, salt);
 
-        const newHR = new User({
+        const newHRUser = new User({
             companyName,
-            employeeId: newEmployeeId,
             name,
             email,
             phone,
-            gender,
-            dob,
             password: hashedPassword,
             role: 'HR',
-            department,
-            isActive: true 
+            isActive: true
         });
 
-        await newHR.save();
+        const savedUser = await newHRUser.save();
+
+        const newHREmployee = new Employee({
+            userId: savedUser._id,
+            employeeId: newEmployeeId,
+            department,
+            designation: designation || 'HR Manager',
+            salary: salary || 0,
+            bankName,
+            accountNumber,
+            ifscCode,
+            panNumber,
+            gender,
+            dob,
+            joinDate: new Date()
+        });
+
+        await newHREmployee.save();
 
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -80,8 +94,22 @@ exports.createHR = async (req, res) => {
 exports.getHRList = async (req, res) => {
     try {
         const companyName = req.user.companyName;
-        const hrs = await User.find({ companyName, role: 'HR', isActive: { $ne: false } }).select('-password');
-        res.status(200).json(hrs);
+        
+        const companyHRUsers = await User.find({ companyName, role: 'HR', isActive: true });
+        const hrUserIds = companyHRUsers.map(u => u._id);
+
+        const hrs = await Employee.find({ userId: { $in: hrUserIds } })
+            .populate('userId', 'email name phone avatar isActive');
+            
+        const formattedHRs = hrs.map(hr => ({
+            ...hr.toObject(),
+            name: hr.userId.name,
+            email: hr.userId.email,
+            phone: hr.userId.phone,
+            avatar: hr.userId.avatar
+        }));
+
+        res.status(200).json(formattedHRs);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -90,22 +118,22 @@ exports.getHRList = async (req, res) => {
 exports.updateHR = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, phone, gender, dob, department } = req.body;
-        const companyName = req.user.companyName;
+        const { name, phone, gender, dob, department, designation, salary, bankName, accountNumber, ifscCode, panNumber } = req.body;
 
-        const updateData = { name, phone, gender, dob, department };
-
-        const updatedHR = await User.findOneAndUpdate(
-            { _id: id, companyName, role: 'HR' },
-            updateData,
-            { new: true }
-        ).select('-password');
-
-        if (!updatedHR) {
+        const hrEmployee = await Employee.findById(id);
+        if (!hrEmployee) {
             return res.status(404).json({ message: 'HR not found' });
         }
 
-        res.status(200).json({ message: 'HR details updated successfully', hr: updatedHR });
+        await User.findByIdAndUpdate(hrEmployee.userId, { name, phone });
+
+        const updatedHR = await Employee.findByIdAndUpdate(
+            id,
+            { gender, dob, department, designation, salary, bankName, accountNumber, ifscCode, panNumber },
+            { new: true }
+        ).populate('userId', 'name email phone avatar isActive');
+
+        res.status(200).json({ message: 'HR details updated successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -114,17 +142,13 @@ exports.updateHR = async (req, res) => {
 exports.deleteHR = async (req, res) => {
     try {
         const { id } = req.params;
-        const companyName = req.user.companyName;
 
-        const deletedHR = await User.findOneAndUpdate(
-            { _id: id, companyName, role: 'HR' },
-            { isActive: false },
-            { new: true }
-        );
-
-        if (!deletedHR) {
+        const hrEmployee = await Employee.findById(id);
+        if (!hrEmployee) {
             return res.status(404).json({ message: 'HR not found' });
         }
+
+        await User.findByIdAndUpdate(hrEmployee.userId, { isActive: false });
 
         res.status(200).json({ message: 'HR access revoked successfully' });
     } catch (error) {

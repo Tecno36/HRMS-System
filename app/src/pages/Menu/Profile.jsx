@@ -17,10 +17,10 @@ export default function Profile() {
       phone: 'Not Added',
       department: 'Not Assigned',
       designation: 'Employee',
-      shift: '9:30 AM to 6:30 PM',
+      shift: 'General',
       manager: 'Not Assigned',
       joinDate: '--',
-      location: 'Mumbai, Maharashtra, India',
+      location: 'Not Added',
       avatar: ''
     }
   );
@@ -60,11 +60,11 @@ export default function Profile() {
           employeeId: userData.employeeId || 'Not Assigned',
           phone: userData.phone || 'Not Added',
           department: userData.department || 'Not Assigned',
-          designation: userData.role || 'Employee',
+          designation: userData.designation || userData.role || 'Employee',
           manager: hrName,
           joinDate: formattedJoinDate,
-          shift: '9:30 AM to 6:30 PM',
-          location: 'Mumbai, Maharashtra, India',
+          shift: userData.shift || 'General',
+          location: userData.address || 'Not Added',
           avatar: userData.avatar || '',
           mPinSet: userData.mPin ? true : false,
           isBiometricEnabled: userData.isBiometricEnabled ? true : false
@@ -126,8 +126,8 @@ export default function Profile() {
               <div className="bg-[#5B3CD8] pt-12 pb-20 px-5 rounded-b-[40px] relative shadow-sm">
                 
                 <div className="flex items-center justify-between relative z-20">
-                  <button onClick={() => history.goBack()} className="p-2 -ml-2 text-white active:scale-95 transition-transform">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                   <button onClick={() => history.goBack()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white active:scale-95 transition-transform">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
                   </button>
                   <h1 className="text-white font-medium text-lg">My Profile</h1>
                   <button className="p-2 -mr-2 text-white active:scale-95 transition-transform">
@@ -190,7 +190,7 @@ export default function Profile() {
 
                 <div className="text-center flex flex-col items-center border-l border-r border-gray-100">
                   <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center mb-2">
-                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
                   </div>
                   <span className="text-[10px] text-gray-400 font-medium mb-1">Joined On</span>
                   <p className="text-[12px] font-bold text-gray-900">{user.joinDate}</p>
@@ -201,7 +201,7 @@ export default function Profile() {
                     <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
                   <span className="text-[10px] text-gray-400 font-medium mb-1">Shift</span>
-                  <p className="text-[12px] font-bold text-gray-900">General</p>
+                  <p className="text-[12px] font-bold text-gray-900">{user.shift}</p>
                 </div>
               </div>
             </div>

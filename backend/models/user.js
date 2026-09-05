@@ -18,47 +18,23 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
+    phone: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    avatar: { 
+        type: String, 
+        default: '' 
+    },
     password: {
         type: String,
         required: true
-    },
-    phone: {
-        type: String,
-        trim: true
     },
     role: {
         type: String,
         enum: ['Super Admin', 'HR', 'Employee'],
         default: 'Employee'
-    },
-    department: {
-        type: String
-    },
-    assignedHR: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' 
-    },
-    employeeId: { 
-        type: String,
-        unique: true,
-        sparse: true
-    },
-    salary: {
-        type: Number,
-        default: 0
-    },
-    avatar: { 
-        type: String, 
-        default: '' 
-    }, 
-    gender: { 
-        type: String, 
-        enum: ['Male', 'Female', 'Other'], 
-        default: 'Male' 
-    },
-    dob: { 
-        type: String, 
-        default: '' 
     },
     isActive: {
         type: Boolean,
