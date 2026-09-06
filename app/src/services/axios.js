@@ -4,8 +4,8 @@ import { Capacitor } from '@capacitor/core';
 const isLocalWeb = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 const apiBaseUrl = Capacitor.isNativePlatform()
-  ? 'https://hrms-system-yri7.onrender.com/api'
-  : (isLocalWeb ? 'http://localhost:5000/api' : 'https://hrms-system-yri7.onrender.com/api');
+  ? 'https://hrms-system-1-r05y.onrender.com/api'
+  : (isLocalWeb ? 'http://localhost:5000/api' : 'https://hrms-system-1-r05y.onrender.com/api');
 
 const instance = axios.create({
   baseURL: apiBaseUrl,
