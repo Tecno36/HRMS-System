@@ -66,7 +66,6 @@ def main():
             
             pitch_diff = max_pitch - min_pitch
             
-            # 0.04 चा फरक म्हणजे चेहऱ्याने खरोखरच वर आणि खाली हालचाल केली आहे. (2D फोटोत हे शक्य नाही)
             if pitch_diff >= 0.04: 
                 print(json.dumps({"status": "success", "message": "Real Person Verified"}))
             else:
