@@ -1,4 +1,5 @@
 const path = require('path');
+const os = require('os');
 const { spawn } = require('child_process');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
@@ -11,10 +12,13 @@ exports.verifyLiveness = async (req, res) => {
       return res.status(400).json({ status: 'fail', message: 'No images provided for verification' });
     }
 
-    const pythonExecutable = path.join(__dirname, '../venv311/Scripts/python.exe');
+    const pythonCommand = os.platform() === 'win32' 
+      ? path.join(__dirname, '../venv311/Scripts/python.exe')
+      : 'python';
+      
     const scriptPath = path.join(__dirname, '../python_scripts/liveness_check.py');
 
-    const pythonProcess = spawn(pythonExecutable, [scriptPath]);
+    const pythonProcess = spawn(pythonCommand, [scriptPath]);
 
     let dataToSend = '';
     
