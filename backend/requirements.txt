@@ -13,6 +13,7 @@ opencv-contrib-python-headless==5.0.0.93
 opencv-python-headless==5.0.0.93
 packaging==26.3
 pillow==12.3.0
+protobuf==4.25.3
 pycparser==3.0
 pyparsing==3.3.2
 python-dateutil==2.9.0.post0
