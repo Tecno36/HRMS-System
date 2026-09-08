@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Route, Switch, Redirect, useHistory, useLocation } from 'react-router-dom';
 import { IonApp, useIonToast, setupIonicReact } from '@ionic/react';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -9,7 +9,6 @@ import './index.css';
 import Login from './pages/Auth/Login';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import SetMpin from './pages/Auth/SetMpin';
-import LockScreen from './pages/Auth/LockScreen';
 
 import Dashboard from './pages/Menu/Dashboard';
 import Profile from './pages/Menu/Profile';
@@ -36,7 +35,7 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
   />
 );
 
-function AppController({ isLocked, setIsLocked }) {
+function AppController() {
   const history = useHistory();
   const location = useLocation();
   const [present] = useIonToast();
@@ -48,7 +47,7 @@ function AppController({ isLocked, setIsLocked }) {
     const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
       const path = location.pathname;
       
-      if (isLocked || path === '/dashboard' || path === '/login') {
+      if (path === '/dashboard' || path === '/login') {
         if (new Date().getTime() - lastTimeBackPress < timePeriodToExit) {
           CapacitorApp.exitApp();
         } else {
@@ -56,7 +55,7 @@ function AppController({ isLocked, setIsLocked }) {
             message: 'Press back again to exit',
             duration: 2000,
             position: 'bottom',
-            color: 'dark'
+            color: 'light'
           });
           lastTimeBackPress = new Date().getTime();
         }
@@ -66,16 +65,11 @@ function AppController({ isLocked, setIsLocked }) {
     });
 
     const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
+      if (!isActive) {
         const token = localStorage.getItem('token');
-        const userStr = localStorage.getItem('user');
-        if (token && userStr) {
-          try {
-            const user = JSON.parse(userStr);
-            if (user.mPinSet) {
-              setIsLocked(true);
-            }
-          } catch (e) {}
+        if (token) {
+          localStorage.clear();
+          window.location.href = '/login';
         }
       }
     });
@@ -84,21 +78,16 @@ function AppController({ isLocked, setIsLocked }) {
       backButtonListener.remove();
       appStateListener.remove();
     };
-  }, [history, location.pathname, isLocked, present, setIsLocked]);
+  }, [history, location.pathname, present]);
 
   useEffect(() => {
     const registerPush = async () => {
       if (Capacitor.isNativePlatform()) {
         let permStatus = await PushNotifications.checkPermissions();
-        
         if (permStatus.receive === 'prompt') {
           permStatus = await PushNotifications.requestPermissions();
         }
-
-        if (permStatus.receive !== 'granted') {
-          return;
-        }
-
+        if (permStatus.receive !== 'granted') return;
         await PushNotifications.register();
       }
     };
@@ -122,7 +111,7 @@ function AppController({ isLocked, setIsLocked }) {
             message: `${notification.title}: ${notification.body}`,
             duration: 4000,
             position: 'top',
-            color: 'primary'
+            color: 'light'
           });
         });
 
@@ -143,10 +132,6 @@ function AppController({ isLocked, setIsLocked }) {
       }
     };
   }, [history, present]);
-
-  if (isLocked) {
-    return <LockScreen onUnlock={() => setIsLocked(false)} />;
-  }
 
   return (
     <Switch>
@@ -180,12 +165,10 @@ function AppController({ isLocked, setIsLocked }) {
 }
 
 export default function App() {
-  const [isLocked, setIsLocked] = useState(false);
-
   return (
     <IonApp>
       <BrowserRouter>
-        <AppController isLocked={isLocked} setIsLocked={setIsLocked} />
+        <AppController />
       </BrowserRouter>
     </IonApp>
   );
