@@ -64,11 +64,13 @@ function AppController() {
       }
     });
 
+    // ॲप बॅकग्राउंडला गेल्यावर थेट तुमच्या लॉगीन/mPIN पेजवर पाठवण्यासाठी
     const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
       if (!isActive) {
         const token = localStorage.getItem('token');
         if (token) {
-          localStorage.clear();
+          // टोकन ठेवून किंवा साफ करून थेट लॉगीन पेजवर नेणे
+          localStorage.removeItem('token');
           window.location.href = '/login';
         }
       }
