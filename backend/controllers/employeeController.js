@@ -118,14 +118,14 @@ exports.getEmployeeList = async (req, res) => {
 
         const employees = await Employee.find(query)
             .populate('userId', 'email name phone avatar isActive')
-            .populate('assignedHR', 'name email');
+            .populate({ path: 'assignedHR', select: 'name email', strictPopulate: false });
             
         const formattedEmployees = employees.map(emp => ({
             ...emp.toObject(),
-            name: emp.userId.name,
-            email: emp.userId.email,
-            phone: emp.userId.phone,
-            avatar: emp.userId.avatar
+            name: emp.userId ? emp.userId.name : '',
+            email: emp.userId ? emp.userId.email : '',
+            phone: emp.userId ? emp.userId.phone : '',
+            avatar: emp.userId ? emp.userId.avatar : ''
         }));
 
         res.status(200).json(formattedEmployees);
@@ -156,7 +156,8 @@ exports.updateEmployee = async (req, res) => {
             id,
             updateData,
             { new: true }
-        ).populate('userId', 'name email phone avatar isActive').populate('assignedHR', 'name email');
+        ).populate('userId', 'name email phone avatar isActive')
+         .populate({ path: 'assignedHR', select: 'name email', strictPopulate: false });
 
         res.status(200).json({ message: 'Employee updated successfully' });
     } catch (error) {
