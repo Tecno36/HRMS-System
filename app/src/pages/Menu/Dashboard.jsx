@@ -237,7 +237,6 @@ export default function Dashboard() {
   return (
     <IonPage>
       <IonContent scrollY={false} className="ion-no-padding">
-        {/* Main Background set to Purple so rounded top corners reveal purple */}
         <div className="h-full w-full bg-[#5B3CD8] flex flex-col font-sans relative select-none">
           
           {toast.show && (
@@ -257,7 +256,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Purple Header */}
+          {/* Sticky Purple Header */}
           <div className="shrink-0 pt-12 pb-[70px] px-6 relative z-0">
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
@@ -281,12 +280,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Main Body Container with rounded-t-[25px] */}
-          <div className="bg-[#F8F9FE] rounded-t-[25px] flex-1 flex flex-col relative z-10 w-full shadow-[0_-8px_20px_rgba(0,0,0,0.06)]">
+          {/* Main Container */}
+          <div className="bg-[#F8F9FE] rounded-t-[25px] flex-1 flex flex-col relative z-10 w-full shadow-[0_-8px_20px_rgba(0,0,0,0.06)] min-h-0">
             
-            {/* FIXED ATTENDANCE CARD (20% Up in Purple Header, 80% Down) */}
+            {/* FIXED ATTENDANCE CARD (Sticky / Non-scrollable) */}
             <div className="shrink-0 px-5 -mt-12 relative z-20">
-              <div className="bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-gray-100/50">
+              <div className="bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-100/50">
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h2 className="text-sm font-bold text-gray-900">Attendance Overview</h2>
@@ -352,7 +351,7 @@ export default function Dashboard() {
                      onClick={() => openPunchModal('out')}
                      className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-[18px] shadow-lg shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-2 text-[13px]"
                    >
-                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                      Punch Out
                    </button>
                 )}
@@ -369,8 +368,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* SCROLLABLE BOTTOM CONTENT */}
-            <div className="flex-1 overflow-y-auto px-5 pt-6 pb-8 space-y-6">
+            {/* INDEPENDENTLY SCROLLABLE BOTTOM CONTENT (Now fully working with min-h-0) */}
+            <div className="flex-1 overflow-y-auto min-h-0 px-5 pt-6 pb-12 space-y-6">
               
               <div className="grid grid-cols-4 gap-3">
                 <Link to="/profile" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-sm border border-gray-100/50 active:scale-95 transition-transform">
