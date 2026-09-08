@@ -1,5 +1,6 @@
 const Leave = require('../models/Leave');
 const User = require('../models/User');
+const Employee = require('../models/Employee');
 const sendEmail = require('../utils/sendEmail');
 
 exports.applyLeave = async (req, res) => {
@@ -30,12 +31,12 @@ exports.applyLeave = async (req, res) => {
 
         await newLeave.save();
 
-        const user = await User.findById(employeeId).populate('assignedHR');
+        const user = await User.findById(employeeId);
+        const employeeRecord = await Employee.findOne({ userId: employeeId }).populate('assignedHR');
 
-        const hrEmail = (user && user.assignedHR && user.assignedHR.email) ? user.assignedHR.email : process.env.EMAIL_USER;
+        const hrEmail = (employeeRecord && employeeRecord.assignedHR && employeeRecord.assignedHR.email) ? employeeRecord.assignedHR.email : process.env.EMAIL_USER;
 
-
-        if (hrEmail) {
+        if (hrEmail && user) {
             const subject = `New Leave Request - ${user.name}`;
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px;">
@@ -45,7 +46,7 @@ exports.applyLeave = async (req, res) => {
                     <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">
                         <tr>
                             <td style="padding: 10px; border: 1px solid #eee; background-color: #f8f9fe; font-weight: bold; width: 30%;">Employee ID</td>
-                            <td style="padding: 10px; border: 1px solid #eee;">${user.employeeId || 'N/A'}</td>
+                            <td style="padding: 10px; border: 1px solid #eee;">${employeeRecord && employeeRecord.employeeId ? employeeRecord.employeeId : 'N/A'}</td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #eee; background-color: #f8f9fe; font-weight: bold;">Leave Type</td>
