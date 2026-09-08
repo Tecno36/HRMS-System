@@ -25,6 +25,26 @@ instance.interceptors.request.use(
   (error) => {
     return Promise.reject(error);
   }
-); 
+);
+
+instance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (!error.response) {
+      const customError = new Error('Network error. Please check your internet connection.');
+      customError.isNetworkError = true;
+      return Promise.reject(customError);
+    }
+    
+    if (error.response.status === 401) {
+      localStorage.clear();
+      window.location.href = '/login';
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default instance;
