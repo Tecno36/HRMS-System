@@ -237,7 +237,8 @@ export default function Dashboard() {
   return (
     <IonPage>
       <IonContent scrollY={false} className="ion-no-padding">
-        <div className="h-full w-full bg-[#F8F9FE] flex flex-col font-sans relative select-none">
+        {/* Main Background set to Purple so rounded top corners reveal purple */}
+        <div className="h-full w-full bg-[#5B3CD8] flex flex-col font-sans relative select-none">
           
           {toast.show && (
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] animate-fade-in-down w-[90%] max-w-sm">
@@ -256,32 +257,36 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="shrink-0 z-30 bg-[#F8F9FE] pb-2">
-            <div className="bg-[#5B3CD8] pt-12 pb-28 px-6 rounded-b-[40px]">
-              <div className="flex justify-between items-center">
-                <div className="flex flex-col">
-                  <p className="text-white/80 text-xs font-medium">Welcome 👋</p>
-                  <h1 className="text-white font-bold text-xl leading-tight mt-0.5">{user.name}</h1>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button className="relative p-2 text-white active:scale-95 transition-transform">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </button>
+          {/* Purple Header */}
+          <div className="shrink-0 pt-12 pb-[70px] px-6 relative z-0">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col">
+                <p className="text-white/80 text-xs font-medium">Welcome 👋</p>
+                <h1 className="text-white font-bold text-xl leading-tight mt-0.5">{user.name}</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="relative p-2 text-white active:scale-95 transition-transform">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                  <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
 
-                  <Link to="/profile" className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/40 overflow-hidden shadow-sm active:scale-95 transition-transform">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-white font-bold text-lg">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
-                    )}
-                  </Link>
-                </div>
+                <Link to="/profile" className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/40 overflow-hidden shadow-sm active:scale-95 transition-transform">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white font-bold text-lg">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
+                  )}
+                </Link>
               </div>
             </div>
+          </div>
 
-            <div className="px-6 -mt-20 relative z-20">
-              <div className="bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          {/* Main Body Container with rounded-t-[25px] */}
+          <div className="bg-[#F8F9FE] rounded-t-[25px] flex-1 flex flex-col relative z-10 w-full shadow-[0_-8px_20px_rgba(0,0,0,0.06)]">
+            
+            {/* FIXED ATTENDANCE CARD (20% Up in Purple Header, 80% Down) */}
+            <div className="shrink-0 px-5 -mt-12 relative z-20">
+              <div className="bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-gray-100/50">
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h2 className="text-sm font-bold text-gray-900">Attendance Overview</h2>
@@ -335,7 +340,7 @@ export default function Dashboard() {
                 {!hasClockedIn && (
                    <button 
                      onClick={() => openPunchModal('in')}
-                     className="w-full py-3.5 bg-gradient-to-r from-[#5B3CD8] to-[#7148FC] text-white font-bold rounded-2xl shadow-lg shadow-[#5B3CD8]/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                     className="w-full py-3.5 bg-gradient-to-r from-[#5B3CD8] to-[#7148FC] text-white font-bold rounded-[18px] shadow-lg shadow-[#5B3CD8]/30 active:scale-95 transition-all flex items-center justify-center gap-2 text-[13px]"
                    >
                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                      Punch In
@@ -345,9 +350,9 @@ export default function Dashboard() {
                 {hasClockedIn && !hasClockedOut && (
                    <button 
                      onClick={() => openPunchModal('out')}
-                     className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                     className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-[18px] shadow-lg shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-2 text-[13px]"
                    >
-                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                      Punch Out
                    </button>
                 )}
@@ -355,7 +360,7 @@ export default function Dashboard() {
                 {hasClockedIn && hasClockedOut && (
                    <button 
                      disabled
-                     className="w-full py-3.5 bg-gray-100 text-green-600 font-bold rounded-2xl flex items-center justify-center gap-2 border border-green-200"
+                     className="w-full py-3.5 bg-gray-50 text-green-600 font-bold rounded-[18px] flex items-center justify-center gap-2 border border-green-200 text-[13px]"
                    >
                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                      Shift Completed
@@ -363,118 +368,119 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-6 pt-2">
-            
-            <div className="grid grid-cols-4 gap-3">
-              <Link to="/profile" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-[0_4px_20px_rgb(0,0,0,0.03)] active:scale-95 transition-transform">
-                <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-[#5B3CD8]">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
-                </div>
-                <span className="text-[10px] font-semibold text-gray-700">Profile</span>
-              </Link>
-              <Link to="/attendance" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-[0_4px_20px_rgb(0,0,0,0.03)] active:scale-95 transition-transform">
-                <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
-                </div>
-                <span className="text-[10px] font-semibold text-gray-700">History</span>
-              </Link>
-              <Link to="/apply-leave" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-[0_4px_20px_rgb(0,0,0,0.03)] active:scale-95 transition-transform">
-                <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-500">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
-                </div>
-                <span className="text-[10px] font-semibold text-gray-700">Apply</span>
-              </Link>
-              <Link to="/payslip" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-[0_4px_20px_rgb(0,0,0,0.03)] active:scale-95 transition-transform">
-                <div className="w-10 h-10 bg-rose-50 rounded-full flex items-center justify-center text-rose-500">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
-                </div>
-                <span className="text-[10px] font-semibold text-gray-700">Payslip</span>
-              </Link>
-            </div>
-
-            <div className="bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-sm font-bold text-gray-900">Leave Balance</h2>
-                <Link to="/leaves" className="text-[11px] font-bold text-[#5B3CD8]">View All</Link>
+            {/* SCROLLABLE BOTTOM CONTENT */}
+            <div className="flex-1 overflow-y-auto px-5 pt-6 pb-8 space-y-6">
+              
+              <div className="grid grid-cols-4 gap-3">
+                <Link to="/profile" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-sm border border-gray-100/50 active:scale-95 transition-transform">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center text-[#5B3CD8]">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-700">Profile</span>
+                </Link>
+                <Link to="/attendance" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-sm border border-gray-100/50 active:scale-95 transition-transform">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-700">History</span>
+                </Link>
+                <Link to="/apply-leave" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-sm border border-gray-100/50 active:scale-95 transition-transform">
+                  <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-700">Apply</span>
+                </Link>
+                <Link to="/payslip" className="bg-white p-3 rounded-[20px] flex flex-col items-center justify-center gap-2 shadow-sm border border-gray-100/50 active:scale-95 transition-transform">
+                  <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-700">Payslip</span>
+                </Link>
               </div>
-              <div className="flex gap-4">
-                <div className="flex-1 bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center gap-3">
-                  <div className="w-1.5 h-8 bg-blue-500 rounded-full"></div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 font-medium">Casual Leave</p>
-                    <p className="text-sm font-bold text-gray-900">04 <span className="text-xs font-medium text-gray-400">/ 12</span></p>
+
+              <div className="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100/50">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-[14px] font-bold text-gray-900 tracking-wide">Leave Balance</h2>
+                  <Link to="/leaves" className="text-[11px] font-bold text-[#5B3CD8] bg-indigo-50 px-2 py-1 rounded-md">View All</Link>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 bg-gray-50/80 rounded-[18px] p-4 border border-gray-100 flex items-center gap-3">
+                    <div className="w-1.5 h-8 bg-blue-500 rounded-full"></div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 font-bold tracking-wide uppercase">Casual Leave</p>
+                      <p className="text-[15px] font-bold text-gray-900 leading-tight">04 <span className="text-xs font-medium text-gray-400">/ 12</span></p>
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-gray-50/80 rounded-[18px] p-4 border border-gray-100 flex items-center gap-3">
+                    <div className="w-1.5 h-8 bg-red-400 rounded-full"></div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 font-bold tracking-wide uppercase">Sick Leave</p>
+                      <p className="text-[15px] font-bold text-gray-900 leading-tight">02 <span className="text-xs font-medium text-gray-400">/ 06</span></p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex-1 bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center gap-3">
-                  <div className="w-1.5 h-8 bg-red-400 rounded-full"></div>
+              </div>
+
+              <div className="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100/50">
+                <h2 className="text-[14px] font-bold text-gray-900 tracking-wide mb-4">Announcements</h2>
+                <div className="flex gap-4 items-start border-b border-gray-50 pb-4 mb-4">
+                  <div className="w-11 h-11 rounded-2xl bg-[#FFF5EB] flex items-center justify-center shrink-0">
+                    <span className="text-orange-500 text-lg">🎉</span>
+                  </div>
                   <div>
-                    <p className="text-[10px] text-gray-500 font-medium">Sick Leave</p>
-                    <p className="text-sm font-bold text-gray-900">02 <span className="text-xs font-medium text-gray-400">/ 06</span></p>
+                    <h3 className="text-[13px] font-bold text-gray-900">Upcoming Holiday: Diwali</h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">Office will remain closed on 12th and 13th Nov. Happy Diwali in advance!</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-11 h-11 rounded-2xl bg-[#F0EDFF] flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-[#5B3CD8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-[13px] font-bold text-gray-900">Updated HR Policy</h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">Please review the updated leave encashment policy on the portal.</p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <h2 className="text-sm font-bold text-gray-900 mb-4">Announcements</h2>
-              <div className="flex gap-4 items-start border-b border-gray-100 pb-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
-                  <span className="text-orange-500 text-lg">🎉</span>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900">Upcoming Holiday: Diwali</h3>
-                  <p className="text-[10px] text-gray-500 mt-1 leading-relaxed">Office will remain closed on 12th and 13th Nov. Happy Diwali in advance!</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-xl bg-[#5B3CD8]/10 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-[#5B3CD8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900">Updated HR Policy</h3>
-                  <p className="text-[10px] text-gray-500 mt-1 leading-relaxed">Please review the updated leave encashment policy on the portal.</p>
-                </div>
-              </div>
             </div>
-
           </div>
 
+          {/* Modals Code */}
           {isReasonModalOpen && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
-              <div className="bg-white w-full max-w-sm rounded-3xl p-6 flex flex-col relative">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-6 backdrop-blur-sm">
+              <div className="bg-white w-full max-w-sm rounded-[28px] p-6 flex flex-col relative animate-fade-in-up shadow-2xl">
                 <button 
                   onClick={() => setIsReasonModalOpen(false)}
-                  className="absolute top-4 right-4 text-gray-400 bg-gray-100 rounded-full p-1 z-20"
+                  className="absolute top-4 right-4 text-gray-400 bg-gray-50 hover:bg-gray-100 rounded-full p-2 z-20 transition-colors"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
 
-                <div className="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mb-4 mx-auto">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="w-14 h-14 bg-[#FFF5EB] text-orange-500 rounded-2xl flex items-center justify-center mb-5 mx-auto">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
 
-                <h3 className="text-lg font-bold text-gray-900 mb-2 text-center">Leaving Early?</h3>
-                <p className="text-xs text-gray-500 text-center mb-6">
+                <h3 className="text-[17px] font-bold text-gray-900 mb-2 text-center tracking-wide">Leaving Early?</h3>
+                <p className="text-[12px] text-gray-500 text-center mb-6 leading-relaxed">
                   You are punching out before completing 9 hours. Please select a reason to continue.
                 </p>
 
                 <div className="space-y-4 w-full">
-                  
                   <div className="mb-4 relative w-full dropdown" ref={dropdownRef}>
                     <label className="text-[11px] font-bold text-gray-900 mb-1.5 block">Reason for Early Leave</label>
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="dropdown-toggle w-full border border-gray-200 rounded-xl px-4 py-3.5 text-[12px] text-gray-800 bg-gray-50/50 flex items-center justify-between cursor-pointer box-border focus:outline-none"
+                      className="dropdown-toggle w-full border border-gray-100 rounded-[16px] px-4 py-4 text-[13px] font-bold text-gray-800 bg-gray-50 flex items-center justify-between cursor-pointer box-border focus:outline-none focus:border-[#5B3CD8] transition-all"
                     >
                       <span className="truncate">{earlyReason || 'Select a reason...'}</span>
-                      <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     
                     {isDropdownOpen && (
-                      <ul className="dropdown-menu block absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl p-1 max-h-48 overflow-y-auto">
+                      <ul className="dropdown-menu block absolute left-0 right-0 z-50 mt-2 bg-white border border-gray-100 rounded-[16px] shadow-xl p-1.5 max-h-48 overflow-y-auto">
                         {leaveOptions.map((option, idx) => (
                           <li key={idx}>
                             <button
@@ -483,7 +489,7 @@ export default function Dashboard() {
                                 setEarlyReason(option);
                                 setIsDropdownOpen(false);
                               }}
-                              className="dropdown-item w-full text-left px-4 py-2.5 text-[12px] text-gray-700 rounded-lg hover:bg-indigo-50 hover:text-[#5B3CD8] transition-colors outline-none"
+                              className="dropdown-item w-full text-left px-4 py-3 text-[12px] font-bold text-gray-700 rounded-xl hover:bg-indigo-50 hover:text-[#5B3CD8] transition-colors outline-none"
                             >
                               {option}
                             </button>
@@ -501,16 +507,16 @@ export default function Dashboard() {
                         value={customReason}
                         onChange={(e) => setCustomReason(e.target.value)}
                         placeholder="Please type here..."
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-[12px] text-gray-800 bg-gray-50/50 focus:border-[#5B3CD8] focus:ring-1 focus:ring-[#5B3CD8] outline-none box-border"
+                        className="w-full border border-gray-100 rounded-[16px] px-4 py-4 text-[13px] font-bold text-gray-800 bg-gray-50 focus:border-[#5B3CD8] focus:bg-white outline-none box-border transition-all"
                       />
                     </div>
                   )}
 
                   <button 
                     onClick={handleReasonSubmit}
-                    className="w-full py-3.5 mt-2 bg-[#5B3CD8] text-white font-bold rounded-xl shadow-lg shadow-[#5B3CD8]/30 active:scale-95 transition-all"
+                    className="w-full py-4 mt-2 bg-[#5B3CD8] text-white text-[13px] tracking-wide font-bold rounded-[18px] shadow-[0_8px_16px_rgba(91,60,216,0.25)] active:scale-95 transition-transform"
                   >
-                    Proceed to Camera Verification
+                    Proceed to Verification
                   </button>
                 </div>
               </div>
@@ -518,29 +524,29 @@ export default function Dashboard() {
           )}
 
           {isPunchModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
-              <div className="bg-white w-full max-w-sm rounded-3xl p-6 flex flex-col items-center relative">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
+              <div className="bg-white w-full max-w-sm rounded-[28px] p-6 flex flex-col items-center relative shadow-2xl animate-fade-in-up">
                 <button 
                   onClick={() => setIsPunchModalOpen(false)}
-                  className="absolute top-4 right-4 text-gray-400 bg-gray-100 rounded-full p-1 z-20"
+                  className="absolute top-4 right-4 text-gray-400 bg-gray-50 hover:bg-gray-100 rounded-full p-2 z-20 transition-colors"
                   disabled={isVerifying}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
 
-                <h3 className="text-lg font-bold text-gray-900 mb-1 mt-2">Face Verification</h3>
+                <h3 className="text-[17px] font-bold text-gray-900 mb-1 mt-2 tracking-wide">Face Verification</h3>
                 
-                <p className={`text-xs font-bold mb-2 text-center ${verificationSuccess ? 'text-green-600' : (isVerifying ? 'text-orange-500' : 'text-[#5B3CD8]')}`}>
+                <p className={`text-[12px] font-bold mb-4 text-center ${verificationSuccess ? 'text-green-600' : (isVerifying ? 'text-orange-500' : 'text-[#5B3CD8]')}`}>
                   {validationMsg}
                 </p>
                 
                 {!verificationSuccess && (
-                  <div className="w-48 bg-gray-200 rounded-full h-1.5 mb-4 overflow-hidden">
+                  <div className="w-full max-w-[200px] bg-gray-100 rounded-full h-1.5 mb-5 overflow-hidden">
                     <div className={`h-1.5 rounded-full transition-all duration-300 ${isVerifying ? 'bg-orange-400 animate-pulse w-full' : 'bg-[#5B3CD8]'}`} style={{ width: isVerifying ? '100%': `${scanPercentage}%` }}></div>
                   </div>
                 )}
 
-                <div className="relative w-64 h-64 mb-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 shadow-inner">
+                <div className="relative w-64 h-64 mb-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-50 shadow-inner">
                   {!verificationSuccess ? (
                     <>
                       <Webcam
@@ -551,15 +557,15 @@ export default function Dashboard() {
                         className="w-full h-full object-cover transform scale-x-[-1]"
                         onUserMedia={startScanning}
                       />
-                      <div className="absolute inset-0 border-4 z-10 transition-colors duration-500 rounded-full border-dashed border-[#5B3CD8]/50"></div>
+                      <div className="absolute inset-0 border-[6px] z-10 transition-colors duration-500 rounded-full border-dashed border-[#5B3CD8]/40"></div>
                     </>
                   ) : (
-                    <img src={capturedImages[capturedImages.length - 1]} alt="Captured Final" className="w-full h-full object-cover rounded-full border-4 border-green-500" />
+                    <img src={capturedImages[capturedImages.length - 1]} alt="Captured Final" className="w-full h-full object-cover rounded-full border-[6px] border-green-500" />
                   )}
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-[11px] font-medium text-gray-500 bg-gray-50 px-4 py-2 rounded-xl mb-4 w-full">
-                   <svg className="w-4 h-4 text-[#5B3CD8]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-gray-500 bg-gray-50 px-4 py-2.5 rounded-xl mb-4 w-full border border-gray-100/50">
+                   <svg className="w-4 h-4 text-[#5B3CD8]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                    </svg>
@@ -569,7 +575,7 @@ export default function Dashboard() {
                 {verificationSuccess && (
                   <button 
                     onClick={handleAttendanceAction}
-                    className={`w-full py-3 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all ${punchAction === 'in' ? 'bg-green-500 shadow-green-500/30' : 'bg-red-500 shadow-red-500/30'}`}
+                    className={`w-full py-4 text-white text-[14px] tracking-wide font-bold rounded-[18px] active:scale-95 transition-transform ${punchAction === 'in' ? 'bg-green-500 shadow-[0_8px_16px_rgba(34,197,94,0.25)]' : 'bg-red-500 shadow-[0_8px_16px_rgba(239,68,68,0.25)]'}`}
                   >
                     Confirm Punch {punchAction === 'in' ? 'In' : 'Out'}
                   </button>
