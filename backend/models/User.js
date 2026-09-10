@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    fcmToken: { 
+        type: String, 
+        default: null 
+    },
     isBiometricEnabled: {
         type: Boolean,
         default: false
