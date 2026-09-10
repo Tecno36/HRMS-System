@@ -3,24 +3,16 @@ backend/venv311/
 venv/
 env/
 
+# Node Modules
+node_modules/
+backend/node_modules/
+
 # Python Cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Environment variables and secrets
-.env
-
-# Database files
-*.sqlite3
-*.db
-
-# IDE and OS generated files
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
 # Environment variables and secrets
 .env
 .env.local
@@ -31,3 +23,15 @@ config.json
 secrets.json
 *.pem
 *.key
+serviceAccountKey.json
+backend/serviceAccountKey.json
+
+# Database files
+*.sqlite3
+*.db
+
+# IDE and OS generated files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

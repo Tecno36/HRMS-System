@@ -12,11 +12,11 @@ const {
     toggleBiometric,
     setupInitialPassword,
     changePassword,
-    changeMpin
+    changeMpin,
+    updateFcmToken
 } = require('../controllers/authController');
 
 const verifyToken = require('../middleware/authMiddleware');
-
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
@@ -28,6 +28,8 @@ router.post('/toggle-biometric', verifyToken, toggleBiometric);
 router.post('/setup-password', verifyToken, setupInitialPassword);
 router.post('/change-password', verifyToken, changePassword);
 router.post('/change-mpin', verifyToken, changeMpin);
+
+router.post('/update-fcm', verifyToken, updateFcmToken);
 
 
 router.get('/profile', verifyToken, getProfile);

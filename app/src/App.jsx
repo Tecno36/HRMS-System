@@ -103,7 +103,7 @@ function AppController() {
           const jwtToken = localStorage.getItem('token');
           if (jwtToken) {
             try {
-              await axios.post('/user/update-fcm', { fcmToken: token.value });
+              await axios.post('/auth/update-fcm', { fcmToken: token.value });
             } catch (error) {}
           }
         });
