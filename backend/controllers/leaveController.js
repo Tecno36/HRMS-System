@@ -2,6 +2,7 @@ const Leave = require('../models/Leave');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const sendEmail = require('../utils/sendEmail');
+const admin = require('firebase-admin');
 
 exports.applyLeave = async (req, res) => {
     try {
@@ -71,9 +72,7 @@ exports.applyLeave = async (req, res) => {
 
             try {
                 await sendEmail({ email: hrEmail, to: hrEmail, subject, html });
-            } catch (emailError) {
-                console.error('Email sending failed:', emailError);
-            }
+            } catch (emailError) {}
         }
 
         res.status(201).json({ status: 'success', message: 'Leave application submitted successfully', leave: newLeave });
@@ -117,11 +116,30 @@ exports.updateLeaveStatus = async (req, res) => {
         const updatedLeave = await Leave.findByIdAndUpdate(
             id,
             { status, approvedBy: hrId },
-            { returnDocument: 'after' }
+            { returnDocument: 'after', new: true }
         );
 
         if (!updatedLeave) {
             return res.status(404).json({ message: 'Leave request not found' });
+        }
+
+        const employee = await User.findById(updatedLeave.employee);
+
+        if (employee && employee.fcmToken) {
+            const message = {
+                token: employee.fcmToken,
+                notification: {
+                    title: `Leave ${status}`,
+                    body: `Your leave request has been ${status.toLowerCase()} by HR.`
+                },
+                data: {
+                    route: '/my-leaves'
+                }
+            };
+
+            try {
+                await admin.messaging().send(message);
+            } catch (pushError) {}
         }
 
         res.status(200).json({ status: 'success', message: `Leave request ${status.toLowerCase()} successfully`, leave: updatedLeave });
