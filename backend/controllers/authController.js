@@ -392,3 +392,22 @@ exports.changeMpin = async (req, res) => {
         return res.status(500).json({ status: 'error', message: error.message });
     }
 };
+
+exports.updateFcmToken = async (req, res) => {
+    try {
+        const { fcmToken } = req.body;
+        const userId = req.user.id; 
+
+        await User.findByIdAndUpdate(userId, { fcmToken: fcmToken }, { new: true });
+
+        res.status(200).json({ 
+            status: 'success', 
+            message: 'FCM token updated successfully' 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'error', 
+            message: error.message 
+        });
+    }
+};

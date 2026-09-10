@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const admin = require('firebase-admin');
 const connectDB = require('./config/db');
+
 const authRoutes = require('./routes/authRoutes');
 const hrRoutes = require('./routes/hrRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
@@ -13,8 +15,14 @@ const reportRoutes = require('./routes/reportRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const performanceRoutes = require('./routes/performanceRoutes');
 
-
 dotenv.config();
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+}
 
 connectDB();
 
