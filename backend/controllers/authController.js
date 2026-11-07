@@ -428,3 +428,16 @@ exports.updateFcmToken = async (req, res) => {
         });
     }
 };
+
+exports.logoutUser = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (userId) {
+            await User.findByIdAndUpdate(userId, { $unset: { fcmToken: 1 } });
+            console.log(`[AUTH] Cleared FCM token for logged out user ${userId}`);
+        }
+        res.status(200).json({ status: 'success', message: 'Logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};

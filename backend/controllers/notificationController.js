@@ -160,3 +160,37 @@ exports.deleteNotification = async (req, res) => {
         res.status(500).json({ status: 'error', message: error.message });
     }
 };
+
+exports.broadcastNotification = async (req, res) => {
+    try {
+        const { title, message, link, type = 'General' } = req.body;
+        const companyName = req.user.companyName;
+
+        if (!title || !message) {
+            return res.status(400).json({ status: 'fail', message: 'Title and message are required' });
+        }
+
+        const notifyUser = require('../utils/notify');
+        const employees = await User.find({ companyName, isActive: true }).select('_id');
+
+        let sentCount = 0;
+        for (const emp of employees) {
+            await notifyUser({
+                recipientId: emp._id,
+                companyName,
+                title,
+                message,
+                type,
+                link: link || '/dashboard'
+            });
+            sentCount++;
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: `Broadcast dispatched to ${sentCount} employee(s).`
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};

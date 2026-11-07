@@ -13,13 +13,15 @@ const {
     setupInitialPassword,
     changePassword,
     changeMpin,
-    updateFcmToken
+    updateFcmToken,
+    logoutUser
 } = require('../controllers/authController');
 
 const verifyToken = require('../middleware/authMiddleware');
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/logout', verifyToken, logoutUser);
 router.post('/forgot-password-otp', forgotPasswordOTP);
 router.post('/reset-password', resetPassword);
 router.post('/set-mpin', verifyToken, setMpin);

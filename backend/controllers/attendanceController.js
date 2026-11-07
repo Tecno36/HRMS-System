@@ -3,6 +3,7 @@ const os = require('os');
 const { spawn } = require('child_process');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
+const notifyUser = require('../utils/notify');
 
 exports.verifyLiveness = async (req, res) => {
   try {
@@ -113,6 +114,21 @@ exports.clockIn = async (req, res) => {
 
     await attendance.save();
 
+    // Send push notification to employee
+    try {
+      const timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      await notifyUser({
+        recipientId: userId,
+        companyName: attendance.companyName,
+        title: 'Punch-In Successful 🕒',
+        message: `Attendance marked at ${timeStr}. Have a productive day!`,
+        type: 'Attendance',
+        link: '/attendance'
+      });
+    } catch (notifErr) {
+      console.warn('[Attendance Notif Error]:', notifErr.message);
+    }
+
     return res.status(200).json({
       status: 'success',
       message: 'Attendance Marked Successfully',
@@ -160,6 +176,21 @@ exports.clockOut = async (req, res) => {
     }
 
     await attendance.save();
+
+    // Send push notification to employee
+    try {
+      const timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      await notifyUser({
+        recipientId: userId,
+        companyName: attendance.companyName,
+        title: 'Punch-Out Successful 🏠',
+        message: `You clocked out at ${timeStr}. Total worked: ${diffHrs} hrs.`,
+        type: 'Attendance',
+        link: '/attendance'
+      });
+    } catch (notifErr) {
+      console.warn('[Attendance Notif Error]:', notifErr.message);
+    }
 
     return res.status(200).json({
       status: 'success',

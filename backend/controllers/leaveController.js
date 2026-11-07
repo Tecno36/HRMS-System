@@ -75,6 +75,28 @@ exports.applyLeave = async (req, res) => {
             } catch (emailError) {}
         }
 
+        // Notify HR and Super Admin users of the company via Push & In-App Notification
+        try {
+            const hrUsers = await User.find({
+                companyName,
+                role: { $in: ['HR', 'Super Admin'] },
+                isActive: true
+            });
+
+            for (const hr of hrUsers) {
+                await notifyUser({
+                    recipientId: hr._id,
+                    companyName,
+                    title: `New Leave Request - ${user?.name || 'Employee'}`,
+                    message: `${user?.name || 'An employee'} applied for ${totalDays} day(s) of ${leaveType}. Reason: ${reason}`,
+                    type: 'Leave',
+                    link: '/admin/leaves'
+                });
+            }
+        } catch (notifErr) {
+            console.warn('[Leave Notification Error]:', notifErr.message);
+        }
+
         res.status(201).json({ status: 'success', message: 'Leave application submitted successfully', leave: newLeave });
     } catch (error) {
         res.status(500).json({ message: error.message });

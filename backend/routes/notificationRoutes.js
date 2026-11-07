@@ -7,7 +7,8 @@ const {
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    testPushNotification
+    testPushNotification,
+    broadcastNotification
 } = require('../controllers/notificationController');
 
 // Public diagnostic status endpoint (no auth required) to inspect Firebase Admin state on Render
@@ -39,6 +40,7 @@ router.use(verifyToken);
 router.get('/', getNotifications);
 router.get('/unread-count', getUnreadCount);
 router.post('/test-push', testPushNotification);
+router.post('/broadcast', broadcastNotification);
 router.put('/mark-all-read', markAllAsRead);
 router.put('/:id/read', markAsRead);
 router.delete('/:id', deleteNotification);
