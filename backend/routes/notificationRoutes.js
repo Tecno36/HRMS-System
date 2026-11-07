@@ -10,6 +10,20 @@ const {
     testPushNotification
 } = require('../controllers/notificationController');
 
+// Public diagnostic status endpoint (no auth required) to inspect Firebase Admin state on Render
+router.get('/status', (req, res) => {
+    const { getApps } = require('firebase-admin/app');
+    res.json({
+        status: 'ok',
+        serverTime: new Date().toISOString(),
+        gitCommit: process.env.RENDER_GIT_COMMIT || 'local',
+        gitBranch: process.env.RENDER_GIT_BRANCH || 'local',
+        firebaseAdmin: global.__firebaseDebug || {
+            initialized: getApps().length > 0
+        }
+    });
+});
+
 router.use(verifyToken);
 
 router.get('/', getNotifications);
