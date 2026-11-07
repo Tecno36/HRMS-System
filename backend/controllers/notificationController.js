@@ -17,7 +17,11 @@ exports.testPushNotification = async (req, res) => {
         if (getApps().length === 0) {
             return res.status(500).json({
                 status: 'fail',
-                message: 'Firebase Admin SDK is NOT initialized on this server. Please check your Render environment variables (FIREBASE_SERVICE_ACCOUNT).'
+                message: 'Firebase Admin SDK is NOT initialized on this server.',
+                debug: global.__firebaseDebug || {
+                    initialized: false,
+                    error: 'Firebase apps array is empty'
+                }
             });
         }
 

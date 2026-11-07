@@ -9,6 +9,25 @@ async function testPush() {
     console.log(`==============================================\n`);
 
     try {
+        // Step 0: Diagnostic check of Render server
+        console.log(`0️⃣ Checking Render Server & Firebase Admin Status...`);
+        try {
+            const statusRes = await fetch(`${RENDER_BASE_URL}/notifications/status`);
+            if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                console.log(`   Git Commit: ${statusData.gitCommit}`);
+                console.log(`   Firebase Initialized: ${statusData.firebaseAdmin?.initialized ? '🟢 YES' : '🔴 NO'}`);
+                if (!statusData.firebaseAdmin?.initialized) {
+                    console.log(`   Detected Env Keys:`, statusData.firebaseAdmin?.detectedKeys);
+                    console.log(`   Init Error:`, statusData.firebaseAdmin?.error);
+                }
+            } else {
+                console.log(`   Status endpoint returned HTTP ${statusRes.status}`);
+            }
+        } catch (statusErr) {
+            console.log(`   (Status check not available on current deployment)`);
+        }
+
         // Step 1: Login
         console.log(`1️⃣ Logging in as ${email}...`);
         const loginRes = await fetch(`${RENDER_BASE_URL}/auth/login`, {
