@@ -24,10 +24,18 @@ dotenv.config();
 if (getApps().length === 0) {
     let initialized = false;
 
-    // Option A: JSON string or Base64 string in FIREBASE_SERVICE_ACCOUNT
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // Option A: Check all possible environment variable names
+    const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT ||
+                              process.env.FIREBASE_SERVICE_ACCOUNT_KEY ||
+                              process.env.SERVICE_ACCOUNT_KEY ||
+                              process.env.FIREBASE_KEY ||
+                              process.env.FIREBASE_CONFIG ||
+                              process.env.FIREBASE_CREDENTIALS ||
+                              process.env.FIREBASE_JSON;
+
+    if (serviceAccountRaw) {
         try {
-            let raw = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+            let raw = serviceAccountRaw.trim();
             // Check if wrapped in extra quotes
             if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
                 raw = raw.slice(1, -1);
@@ -44,9 +52,9 @@ if (getApps().length === 0) {
             }
             initializeApp({ credential: cert(serviceAccount) });
             initialized = true;
-            console.log('✅ Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT env.');
+            console.log('✅ Firebase Admin initialized from environment variable.');
         } catch (err) {
-            console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT:', err.message);
+            console.error('❌ Failed to parse Firebase service account env:', err.message);
         }
     }
 
