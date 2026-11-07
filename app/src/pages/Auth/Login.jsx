@@ -4,6 +4,7 @@ import { useHistory, Link } from 'react-router-dom';
 import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { Device } from '@capacitor/device';
 import axios from '../../services/axios';
+import { syncFcmToken } from '../../services/fcmService';
 import loginIllustration from '../../assets/image/loginimage.jpg';
 import dynedgeLogo from '../../assets/image/dynedgelogo1.png';
 
@@ -95,6 +96,7 @@ export default function Login() {
       const userData = res.data.user;
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(userData));
+      syncFcmToken();
 
       if (userData.isFirstLogin === true || !userData.mPinSet) {
         history.push('/set-mpin');
@@ -133,6 +135,7 @@ export default function Login() {
       });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      syncFcmToken();
       history.push('/dashboard');
     } catch (err) {
       setError('Incorrect mPIN. Try again.');
@@ -168,6 +171,7 @@ export default function Login() {
         
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
+        syncFcmToken();
         history.push('/dashboard');
       } catch (apiErr) {
         setError(apiErr.response?.data?.message || 'Biometric login failed on server.');
