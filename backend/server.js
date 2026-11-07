@@ -87,36 +87,23 @@ function initFirebaseAdmin() {
         return null;
     }
 
-    // A. Priority env variables check
-    const priorityKeys = [
-        'FIREBASE_SERVICE_ACCOUNT',
-        'FIREBASE_SERVICE_ACCOUNT_KEY',
-        'SERVICE_ACCOUNT_KEY',
-        'FIREBASE_KEY',
-        'FIREBASE_CREDENTIALS',
-        'FIREBASE_CONFIG',
-        'FIREBASE_JSON',
-        'GOOGLE_APPLICATION_CREDENTIALS_JSON',
-        ...candidateKeys
-    ];
-
+    // A. Check ALL custom env variables to see if ANY contains the service account credentials
     let serviceAccountObj = null;
     let successfulKey = null;
-    const testedKeys = new Set();
 
-    for (const key of priorityKeys) {
-        if (!key || testedKeys.has(key)) continue;
-        testedKeys.add(key);
-
+    for (const key of Object.keys(process.env)) {
+        if (['PATH', 'NODE_VERSION', 'PORT', 'HOME', 'PWD'].includes(key)) continue;
         const val = process.env[key];
-        if (!val) continue;
+        if (!val || typeof val !== 'string') continue;
 
         try {
-            const parsed = parseServiceAccountString(val);
-            if (parsed && (parsed.project_id || parsed.projectId) && (parsed.private_key || parsed.privateKey)) {
-                serviceAccountObj = parsed;
-                successfulKey = key;
-                break;
+            if (val.includes('service_account') || val.includes('hrms-33796') || val.startsWith('ewogICJ0eXBlI')) {
+                const parsed = parseServiceAccountString(val);
+                if (parsed && (parsed.project_id || parsed.projectId) && (parsed.private_key || parsed.privateKey)) {
+                    serviceAccountObj = parsed;
+                    successfulKey = key;
+                    break;
+                }
             }
         } catch (err) {
             global.__firebaseDebug.error = `Parse error for key "${key}": ${err.message}`;
@@ -167,10 +154,11 @@ function initFirebaseAdmin() {
         }
     }
 
-    // C. File fallback (Local file or Render Secret File)
+    // C. File fallback (Local file, project file, or Render Secret File)
     const secretFilePaths = [
         path.join(__dirname, 'serviceAccountKey.json'),
         path.join(__dirname, '../serviceAccountKey.json'),
+        path.join(process.cwd(), 'serviceAccountKey.json'),
         '/etc/secrets/serviceAccountKey.json',
         '/etc/secrets/firebase.json'
     ];
@@ -179,21 +167,48 @@ function initFirebaseAdmin() {
         try {
             if (fs.existsSync(filePath)) {
                 const fileContent = fs.readFileSync(filePath, 'utf-8');
-                const parsed = JSON.parse(fileContent);
-                if (parsed.private_key) {
-                    parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+                const parsed = parseServiceAccountString(fileContent);
+                if (parsed && (parsed.project_id || parsed.projectId)) {
+                    if (parsed.private_key) {
+                        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+                    }
+                    initializeApp({ credential: cert(parsed) });
+                    global.__firebaseDebug.initialized = true;
+                    global.__firebaseDebug.method = `File [${filePath}]`;
+                    global.__firebaseDebug.projectId = parsed.project_id;
+                    console.log(`✅ Firebase Admin initialized from file [${filePath}].`);
+                    return;
                 }
-                initializeApp({ credential: cert(parsed) });
-                global.__firebaseDebug.initialized = true;
-                global.__firebaseDebug.method = `File [${filePath}]`;
-                global.__firebaseDebug.projectId = parsed.project_id;
-                console.log(`✅ Firebase Admin initialized from file [${filePath}].`);
-                return;
             }
         } catch (err) {
             global.__firebaseDebug.error = `File error [${filePath}]: ${err.message}`;
         }
     }
+
+    // D. Scan /etc/secrets directory if present on Render
+    try {
+        if (fs.existsSync('/etc/secrets')) {
+            const files = fs.readdirSync('/etc/secrets');
+            for (const f of files) {
+                const fullP = path.join('/etc/secrets', f);
+                try {
+                    const content = fs.readFileSync(fullP, 'utf-8');
+                    const parsed = parseServiceAccountString(content);
+                    if (parsed && (parsed.project_id || parsed.projectId)) {
+                        if (parsed.private_key) {
+                            parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+                        }
+                        initializeApp({ credential: cert(parsed) });
+                        global.__firebaseDebug.initialized = true;
+                        global.__firebaseDebug.method = `Render Secret File [${f}]`;
+                        global.__firebaseDebug.projectId = parsed.project_id;
+                        console.log(`✅ Firebase Admin initialized from Render Secret File [${f}].`);
+                        return;
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {}
 
     if (!global.__firebaseDebug.error) {
         global.__firebaseDebug.error = 'No valid Firebase service account found in environment variables or secret files.';
