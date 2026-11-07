@@ -2,7 +2,7 @@ const Leave = require('../models/Leave');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
 const sendEmail = require('../utils/sendEmail');
-const admin = require('firebase-admin');
+const notifyUser = require('../utils/notify');
 
 exports.applyLeave = async (req, res) => {
     try {
@@ -123,24 +123,15 @@ exports.updateLeaveStatus = async (req, res) => {
             return res.status(404).json({ message: 'Leave request not found' });
         }
 
-        const employee = await User.findById(updatedLeave.employee);
-
-        if (employee && employee.fcmToken) {
-            const message = {
-                token: employee.fcmToken,
-                notification: {
-                    title: `Leave ${status}`,
-                    body: `Your leave request has been ${status.toLowerCase()} by HR.`
-                },
-                data: {
-                    route: '/my-leaves'
-                }
-            };
-
-            try {
-                await admin.messaging().send(message);
-            } catch (pushError) {}
-        }
+        // Dispatch In-App Notification and FCM Push Notification to employee
+        await notifyUser({
+            recipientId: updatedLeave.employee,
+            companyName: updatedLeave.companyName,
+            title: `Leave ${status}`,
+            message: `Your leave request for ${updatedLeave.leaveType} (${updatedLeave.totalDays} day${updatedLeave.totalDays > 1 ? 's' : ''}) has been ${status.toLowerCase()} by HR.`,
+            type: 'Leave',
+            link: '/my-leaves'
+        });
 
         res.status(200).json({ status: 'success', message: `Leave request ${status.toLowerCase()} successfully`, leave: updatedLeave });
     } catch (error) {

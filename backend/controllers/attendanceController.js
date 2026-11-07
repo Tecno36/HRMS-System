@@ -14,7 +14,7 @@ exports.verifyLiveness = async (req, res) => {
 
     const pythonCommand = os.platform() === 'win32' 
       ? path.join(__dirname, '../venv311/Scripts/python.exe')
-      : 'python';
+      : path.join(__dirname, '../venv311/bin/python');
       
     const scriptPath = path.join(__dirname, '../python_scripts/liveness_check.py');
 
@@ -202,6 +202,7 @@ exports.getTodayAttendance = async (req, res) => {
 exports.getCompanyAttendance = async (req, res) => {
   try {
     const { date } = req.query; 
+    const companyName = req.user.companyName;
     let startOfDay, endOfDay;
     
     if (date) {
@@ -214,6 +215,7 @@ exports.getCompanyAttendance = async (req, res) => {
     }
 
     const attendanceRecords = await Attendance.find({
+      companyName,
       date: { $gte: startOfDay, $lte: endOfDay }
     }).populate('employee', 'name employeeId department email role');
 

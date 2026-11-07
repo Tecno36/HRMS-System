@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Route, Switch, Redirect, useHistory, useLocation } from 'react-router-dom';
 import { IonApp, useIonToast, setupIonicReact } from '@ionic/react';
 import { App as CapacitorApp } from '@capacitor/app';
-import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { initPushNotifications, syncFcmToken } from './services/fcmService';
 import './index.css'; 
 
 import Login from './pages/Auth/Login';
@@ -64,15 +64,11 @@ function AppController() {
       }
     });
 
-    // ॲप बॅकग्राउंडला गेल्यावर थेट तुमच्या लॉगीन/mPIN पेजवर पाठवण्यासाठी
+    // ॲप स्टेट मॅनेजमेंट (बॅकग्राउंड/फोरग्राउंड)
     const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (!isActive) {
-        const token = localStorage.getItem('token');
-        if (token) {
-          // टोकन ठेवून किंवा साफ करून थेट लॉगीन पेजवर नेणे
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
+      if (isActive) {
+        // App परत फोरग्राउंडला आल्यावर FCM टोकन सिंक करणे
+        syncFcmToken();
       }
     });
 
@@ -83,56 +79,7 @@ function AppController() {
   }, [history, location.pathname, present]);
 
   useEffect(() => {
-    const registerPush = async () => {
-      if (Capacitor.isNativePlatform()) {
-        let permStatus = await PushNotifications.checkPermissions();
-        if (permStatus.receive === 'prompt') {
-          permStatus = await PushNotifications.requestPermissions();
-        }
-        if (permStatus.receive !== 'granted') return;
-        await PushNotifications.register();
-      }
-    };
-
-    registerPush();
-
-    const addListeners = async () => {
-      if (Capacitor.isNativePlatform()) {
-        await PushNotifications.addListener('registration', async (token) => {
-          localStorage.setItem('fcmToken', token.value);
-          const jwtToken = localStorage.getItem('token');
-          if (jwtToken) {
-            try {
-              await axios.post('/auth/update-fcm', { fcmToken: token.value });
-            } catch (error) {}
-          }
-        });
-
-        await PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          present({
-            message: `${notification.title}: ${notification.body}`,
-            duration: 4000,
-            position: 'top',
-            color: 'light'
-          });
-        });
-
-        await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-          const data = notification.notification.data;
-          if (data && data.route) {
-            history.push(data.route);
-          }
-        });
-      }
-    };
-
-    addListeners();
-
-    return () => {
-      if (Capacitor.isNativePlatform()) {
-        PushNotifications.removeAllListeners();
-      }
-    };
+    initPushNotifications(present, history);
   }, [history, present]);
 
   return (

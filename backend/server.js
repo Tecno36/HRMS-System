@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const admin = require('firebase-admin');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
@@ -14,14 +14,36 @@ const candidateRoutes = require('./routes/candidateRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const performanceRoutes = require('./routes/performanceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+
+const path = require('path');
 
 dotenv.config();
 
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-    });
+// Initialize Firebase Admin SDK (Modular SDK v14)
+if (getApps().length === 0) {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        try {
+            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            initializeApp({
+                credential: cert(serviceAccount)
+            });
+            console.log('Firebase Admin initialized from environment variable.');
+        } catch (err) {
+            console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', err.message);
+        }
+    } else {
+        const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
+        try {
+            const serviceAccount = require(serviceAccountPath);
+            initializeApp({
+                credential: cert(serviceAccount)
+            });
+            console.log('Firebase Admin initialized from serviceAccountKey.json.');
+        } catch (err) {
+            console.warn('Firebase Admin SDK not initialized: serviceAccountKey.json not found and FIREBASE_SERVICE_ACCOUNT env not set. Push notifications will not work.');
+        }
+    }
 }
 
 connectDB();
@@ -49,6 +71,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/candidates', candidateRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 

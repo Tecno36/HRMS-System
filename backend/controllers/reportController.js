@@ -1,7 +1,8 @@
 const Attendance = require('../models/Attendance');
 const Payroll = require('../models/Payroll');
 const Leave = require('../models/Leave');
-const Employee = require('../models/User'); // Assuming User model
+const User = require('../models/User');
+const Employee = require('../models/Employee');
 
 exports.getReportData = async (req, res) => {
     try {
@@ -20,7 +21,9 @@ exports.getReportData = async (req, res) => {
                 data = await Leave.aggregate([{ $match: { companyName } }, { $group: { _id: "$status", count: { $sum: 1 } } }]);
                 break;
             case 'employees':
-                data = await Employee.aggregate([{ $match: { companyName, role: 'Employee' } }, { $group: { _id: "$department", count: { $sum: 1 } } }]);
+                data = await Employee.aggregate([
+                    { $group: { _id: "$department", count: { $sum: 1 } } }
+                ]);
                 break;
             default:
                 data = [];
