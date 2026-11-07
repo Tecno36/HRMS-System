@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import { Geolocation } from '@capacitor/geolocation';
 import axios from '../../services/axios';
+import { syncFcmToken } from '../../services/fcmService';
 
 export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user')) || { name: 'User', _id: '', id: '', avatar: '' };
@@ -43,6 +44,7 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
+    syncFcmToken();
     fetchTodayAttendance();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
