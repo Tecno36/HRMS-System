@@ -112,8 +112,13 @@ export default function Settings() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await axios.post('/auth/logout');
+    } catch (e) {}
     localStorage.removeItem('token');
+    localStorage.removeItem('fcmToken');
+    localStorage.removeItem('user');
     history.push('/login');
   };
 

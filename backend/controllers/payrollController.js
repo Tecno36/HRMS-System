@@ -2,6 +2,7 @@ const Payroll = require('../models/Payroll');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const Employee = require('../models/Employee');
+const notifyUser = require('../utils/notify');
 
 exports.generatePayroll = async (req, res) => {
     try {
@@ -40,6 +41,20 @@ exports.generatePayroll = async (req, res) => {
             });
 
             await payroll.save();
+
+            // Send Push & In-App Notification to Employee
+            try {
+                await notifyUser({
+                    recipientId: emp.userId._id,
+                    companyName,
+                    title: `Salary Credited - ${month} ${year} 💸`,
+                    message: `Your payslip for ${month} ${year} has been generated. Net Salary: ₹${netSalary.toLocaleString('en-IN')}`,
+                    type: 'Payroll',
+                    link: '/settings'
+                });
+            } catch (notifErr) {
+                console.warn('[Payroll Notif Error]:', notifErr.message);
+            }
         }
 
         res.status(201).json({ message: 'Payroll generated successfully' });
