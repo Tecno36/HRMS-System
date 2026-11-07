@@ -20,28 +20,64 @@ const path = require('path');
 
 dotenv.config();
 
-// Initialize Firebase Admin SDK (Modular SDK v14)
+// Initialize Firebase Admin SDK (Modular SDK v14) with multi-format support
 if (getApps().length === 0) {
+    let initialized = false;
+
+    // Option A: JSON string or Base64 string in FIREBASE_SERVICE_ACCOUNT
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         try {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-            initializeApp({
-                credential: cert(serviceAccount)
-            });
-            console.log('Firebase Admin initialized from environment variable.');
+            let raw = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+            // Check if wrapped in extra quotes
+            if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
+                raw = raw.slice(1, -1);
+            }
+            // Check if base64 encoded
+            if (!raw.startsWith('{')) {
+                try {
+                    raw = Buffer.from(raw, 'base64').toString('utf-8');
+                } catch (b64Err) {}
+            }
+            const serviceAccount = JSON.parse(raw);
+            if (serviceAccount.private_key) {
+                serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+            }
+            initializeApp({ credential: cert(serviceAccount) });
+            initialized = true;
+            console.log('✅ Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT env.');
         } catch (err) {
-            console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', err.message);
+            console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT:', err.message);
         }
-    } else {
+    }
+
+    // Option B: Individual environment variables
+    if (!initialized && process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+        try {
+            const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '');
+            initializeApp({
+                credential: cert({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey: privateKey
+                })
+            });
+            initialized = true;
+            console.log('✅ Firebase Admin initialized from individual env variables.');
+        } catch (err) {
+            console.error('❌ Failed to initialize from individual Firebase envs:', err.message);
+        }
+    }
+
+    // Option C: Local serviceAccountKey.json fallback
+    if (!initialized) {
         const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
         try {
             const serviceAccount = require(serviceAccountPath);
-            initializeApp({
-                credential: cert(serviceAccount)
-            });
-            console.log('Firebase Admin initialized from serviceAccountKey.json.');
+            initializeApp({ credential: cert(serviceAccount) });
+            initialized = true;
+            console.log('✅ Firebase Admin initialized from serviceAccountKey.json.');
         } catch (err) {
-            console.warn('Firebase Admin SDK not initialized: serviceAccountKey.json not found and FIREBASE_SERVICE_ACCOUNT env not set. Push notifications will not work.');
+            console.warn('⚠️ Firebase Admin SDK not initialized: No valid credentials found. Push notifications will be disabled.');
         }
     }
 }

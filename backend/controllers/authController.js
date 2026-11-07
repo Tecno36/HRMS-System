@@ -398,13 +398,30 @@ exports.updateFcmToken = async (req, res) => {
         const { fcmToken } = req.body;
         const userId = req.user.id; 
 
-        await User.findByIdAndUpdate(userId, { fcmToken: fcmToken }, { new: true });
+        if (!fcmToken) {
+            return res.status(400).json({ status: 'fail', message: 'fcmToken is required in request body' });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            { fcmToken: fcmToken }, 
+            { new: true }
+        ).select('name email role fcmToken');
+
+        console.log(`[FCM-AUTH] ✅ Saved FCM token for: ${updatedUser?.name} (${updatedUser?.email}) [ID: ${userId}] -> Token preview: ${fcmToken.slice(0, 20)}...`);
 
         res.status(200).json({ 
             status: 'success', 
-            message: 'FCM token updated successfully' 
+            message: 'FCM token updated successfully in database',
+            user: {
+                id: updatedUser?._id,
+                name: updatedUser?.name,
+                email: updatedUser?.email,
+                fcmTokenPreview: fcmToken.slice(0, 20) + '...'
+            }
         });
     } catch (error) {
+        console.error('[FCM-AUTH Error]:', error.message);
         res.status(500).json({ 
             status: 'error', 
             message: error.message 

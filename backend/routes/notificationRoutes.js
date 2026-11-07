@@ -6,13 +6,15 @@ const {
     getUnreadCount,
     markAsRead,
     markAllAsRead,
-    deleteNotification
+    deleteNotification,
+    testPushNotification
 } = require('../controllers/notificationController');
 
 router.use(verifyToken);
 
 router.get('/', getNotifications);
 router.get('/unread-count', getUnreadCount);
+router.post('/test-push', testPushNotification);
 router.put('/mark-all-read', markAllAsRead);
 router.put('/:id/read', markAsRead);
 router.delete('/:id', deleteNotification);
