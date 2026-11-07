@@ -90,7 +90,7 @@ exports.applyLeave = async (req, res) => {
                     title: `New Leave Request - ${user?.name || 'Employee'}`,
                     message: `${user?.name || 'An employee'} applied for ${totalDays} day(s) of ${leaveType}. Reason: ${reason}`,
                     type: 'Leave',
-                    link: '/admin/leaves'
+                    link: '/dashboard/leaves'
                 });
             }
         } catch (notifErr) {
